@@ -687,7 +687,7 @@ namespace RA2Lib.FileFormats.Binary {
 
         internal class SectionFrame {
             public List<VertexPositionColorNormal> ComputedVertices = new List<VertexPositionColorNormal>();
-            public List<int> ComputedIndices = new List<int>();
+            public List<short> ComputedIndices = new List<short>();
         }
 
         public class Section {
@@ -756,12 +756,12 @@ namespace RA2Lib.FileFormats.Binary {
             }
 
             private List<VertexPositionColorNormal> ComputedVertices;
-            private List<int> ComputedIndices;
+            private List<short> ComputedIndices;
 
             internal void ComputeVerticesIndices(PAL Palette) {
                 if (ComputedVertices == null) {
                     ComputedVertices = new List<VertexPositionColorNormal>();
-                    ComputedIndices = new List<int>();
+                    ComputedIndices = new List<short>();
 
                     var Normals = GetNormals();
 
@@ -789,7 +789,7 @@ namespace RA2Lib.FileFormats.Binary {
 
                             var realPos = Tail.Displacement(v.X, v.Y, v.Z);
 
-                            var start = ComputedVertices.Count;
+                            int start = ComputedVertices.Count;
 
                             foreach (var sh in shifts) {
                                 var vpcn = new VertexPositionColorNormal();
@@ -804,77 +804,78 @@ namespace RA2Lib.FileFormats.Binary {
                                 ComputedVertices.Add(vpcn);
                             }
 
+                            // TODO: safe to convert short to int?
                             if (!obs.HasFlag(Edges.XLess)) {
                                 // 0123
-                                ComputedIndices.Add(start + 0);
-                                ComputedIndices.Add(start + 1);
-                                ComputedIndices.Add(start + 2);
+                                ComputedIndices.Add((short)(start + 0));
+                                ComputedIndices.Add((short)(start + 1));
+                                ComputedIndices.Add((short)(start + 2));
 
-                                ComputedIndices.Add(start + 1);
-                                ComputedIndices.Add(start + 2);
-                                ComputedIndices.Add(start + 3);
+                                ComputedIndices.Add((short)(start + 1));
+                                ComputedIndices.Add((short)(start + 2));
+                                ComputedIndices.Add((short)(start + 3));
                             }
 
                             if (!obs.HasFlag(Edges.YLess)) {
                                 // 0246
-                                ComputedIndices.Add(start + 0);
-                                ComputedIndices.Add(start + 2);
-                                ComputedIndices.Add(start + 4);
+                                ComputedIndices.Add((short)(start + 0));
+                                ComputedIndices.Add((short)(start + 2));
+                                ComputedIndices.Add((short)(start + 4));
 
-                                ComputedIndices.Add(start + 2);
-                                ComputedIndices.Add(start + 4);
-                                ComputedIndices.Add(start + 6);
+                                ComputedIndices.Add((short)(start + 2));
+                                ComputedIndices.Add((short)(start + 4));
+                                ComputedIndices.Add((short)(start + 6));
                             }
 
                             if (!obs.HasFlag(Edges.ZLess)) {
                                 // 0145
-                                ComputedIndices.Add(start + 0);
-                                ComputedIndices.Add(start + 1);
-                                ComputedIndices.Add(start + 4);
+                                ComputedIndices.Add((short)(start + 0));
+                                ComputedIndices.Add((short)(start + 1));
+                                ComputedIndices.Add((short)(start + 4));
 
-                                ComputedIndices.Add(start + 1);
-                                ComputedIndices.Add(start + 4);
-                                ComputedIndices.Add(start + 5);
+                                ComputedIndices.Add((short)(start + 1));
+                                ComputedIndices.Add((short)(start + 4));
+                                ComputedIndices.Add((short)(start + 5));
                             }
 
                             if (!obs.HasFlag(Edges.ZMore)) {
                                 // 2367
-                                ComputedIndices.Add(start + 2);
-                                ComputedIndices.Add(start + 3);
-                                ComputedIndices.Add(start + 6);
+                                ComputedIndices.Add((short)(start + 2));
+                                ComputedIndices.Add((short)(start + 3));
+                                ComputedIndices.Add((short)(start + 6));
 
-                                ComputedIndices.Add(start + 3);
-                                ComputedIndices.Add(start + 6);
-                                ComputedIndices.Add(start + 7);
+                                ComputedIndices.Add((short)(start + 3));
+                                ComputedIndices.Add((short)(start + 6));
+                                ComputedIndices.Add((short)(start + 7));
                             }
 
                             if (!obs.HasFlag(Edges.YMore)) {
                                 // 1357
-                                ComputedIndices.Add(start + 1);
-                                ComputedIndices.Add(start + 3);
-                                ComputedIndices.Add(start + 5);
+                                ComputedIndices.Add((short)(start + 1));
+                                ComputedIndices.Add((short)(start + 3));
+                                ComputedIndices.Add((short)(start + 5));
 
-                                ComputedIndices.Add(start + 3);
-                                ComputedIndices.Add(start + 5);
-                                ComputedIndices.Add(start + 7);
+                                ComputedIndices.Add((short)(start + 3));
+                                ComputedIndices.Add((short)(start + 5));
+                                ComputedIndices.Add((short)(start + 7));
                             }
 
                             if (!obs.HasFlag(Edges.XMore)) {
                                 // 4567
-                                ComputedIndices.Add(start + 4);
-                                ComputedIndices.Add(start + 5);
-                                ComputedIndices.Add(start + 6);
+                                ComputedIndices.Add((short)(start + 4));
+                                ComputedIndices.Add((short)(start + 5));
+                                ComputedIndices.Add((short)(start + 6));
 
-                                ComputedIndices.Add(start + 5);
-                                ComputedIndices.Add(start + 6);
-                                ComputedIndices.Add(start + 7);
+                                ComputedIndices.Add((short)(start + 5));
+                                ComputedIndices.Add((short)(start + 6));
+                                ComputedIndices.Add((short)(start + 7));
                             }
                         }
                     }
                 }
             }
 
-            internal void GetVertices(HVA.Section MotLib, int FrameIdx, PAL Palette, List<VertexPositionColorNormal> Vertices, List<int> Indices) {
+            internal void GetVertices(HVA.Section MotLib, int FrameIdx, PAL Palette, List<VertexPositionColorNormal> Vertices, List<short> Indices) {
                 if (ComputedFrames[FrameIdx] == null) {
                     ComputeVerticesIndices(Palette);
 
@@ -991,7 +992,7 @@ namespace RA2Lib.FileFormats.Binary {
             return true;
         }
 
-        public void GetVertices(PAL Palette, int FrameIdx, List<VertexPositionColorNormal> Vertices, List<int> Indices) {
+        public void GetVertices(PAL Palette, int FrameIdx, List<VertexPositionColorNormal> Vertices, List<short> Indices) {
             for (var i = 0; i < Sections.Count; ++i) {
                 var s = Sections[i];
 

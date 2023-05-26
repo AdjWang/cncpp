@@ -22,11 +22,13 @@ using System.Diagnostics;
 // another is from System.Drawing.Color
 using Color = Microsoft.Xna.Framework.Color;
 
-namespace CnCpp {
+namespace CnCpp
+{
     /// <summary>
     /// This is the main type for your game
     /// </summary>
-    public class MainGame : Microsoft.Xna.Framework.Game {
+    public class MainGame : Microsoft.Xna.Framework.Game
+    {
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
 
@@ -51,21 +53,21 @@ namespace CnCpp {
         //private int MouseScroll;
         private Vector2 MousePos;
 
-        //private List<VoxLib> LoadedVoxels = new List<VoxLib>();
-        //private int VoxelFrame;
+        private List<VoxLib> LoadedVoxels = new List<VoxLib>();
+        private int VoxelFrame;
 
-        //private bool VoxelChanged;
+        private bool VoxelChanged;
 
-        //private VXL.VertexPositionColorNormal[] VoxelContent;
-        //private int[] VoxelIndices;
+        private VXL.VertexPositionColorNormal[] VoxelContent;
+        private short[] VoxelIndices;
 
-        //Matrix worldMatrix;
-        //Matrix viewMatrix;
-        //Matrix projectionMatrix;
+        Matrix worldMatrix;
+        Matrix viewMatrix;
+        Matrix projectionMatrix;
 
         BasicEffect effect;
-        //VertexBuffer vertexBuffer;
-        //IndexBuffer indexBuffer;
+        VertexBuffer vertexBuffer;
+        IndexBuffer indexBuffer;
 
         //private Texture2D MapPreview;
 
@@ -76,9 +78,12 @@ namespace CnCpp {
         private int offX, offY;
         private Vector3 rotation;
 
-        //private float scale = 1f;
+        private float scale = 1f;
 
-        protected enum combinedKeyState {
+        private int tick = 0;
+
+        protected enum combinedKeyState
+        {
             vUp = 1,
             vDown = 2,
             vLeft = 4,
@@ -90,8 +95,32 @@ namespace CnCpp {
 
         protected String GameDir = "";
 
+        private bool m_DoOnceFlag = false;
+        private void DoOnce()
+        {
+            if (m_DoOnceFlag)
+            {
+                return;
+            }
+            m_DoOnceFlag = true;
 
-        public MainGame() {
+            LoadedVoxels.Clear();
+            VoxelFrame = 0;
+
+            String vxl_file = "C:\\Users\\49191\\Desktop\\test\\bfrt.vxl";
+            String hva_file = "C:\\Users\\49191\\Desktop\\test\\bfrt.hva";
+            var body = VoxLib.Create(vxl_file, hva_file);
+            if (body != null)
+            {
+                VoxelChanged = true;
+                LoadedVoxels.Add(body);
+
+                Console.WriteLine("Loaded VXL with {0} sections", LoadedVoxels.Sum(v => v.Voxel.Sections.Count));
+            }
+        }
+
+        public MainGame()
+        {
             graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
             this.IsFixedTimeStep = false;
@@ -104,7 +133,8 @@ namespace CnCpp {
         /// related content.  Calling base.Initialize will enumerate through any components
         /// and initialize them as well.
         /// </summary>
-        protected override void Initialize() {
+        protected override void Initialize()
+        {
             // TODO: Add your initialization logic here
 
             base.Initialize();
@@ -113,7 +143,8 @@ namespace CnCpp {
             // form = (Form)hwnd ?? throw new InvalidOperationException("Unable to get underlying Form.");
             // InitializeDragDrop();
 
-            GraphicsDevice.RasterizerState = new RasterizerState() {
+            GraphicsDevice.RasterizerState = new RasterizerState()
+            {
                 FillMode = FillMode.Solid,
                 CullMode = CullMode.None
             };
@@ -130,7 +161,8 @@ namespace CnCpp {
             offY = defOY;
             rotation = defRotation;
 
-            if (FindGameDir("F:\\Practice\\RA2\\RA2\\gamemd.exe")) {
+            if (FindGameDir("D:\\Games\\RA2\\RA2\\gamemd.exe"))
+            {
                 FileSystem.MainDir = GameDir;
 
                 //                RunTests();
@@ -144,57 +176,75 @@ namespace CnCpp {
             }
         }
 
-        private void InitDrawing() {
+        private void InitDrawing()
+        {
             Drawing.GD = GraphicsDevice;
         }
 
-        private void RunTests() {
+        private void RunTests()
+        {
             var LangMD = FileSystem.LoadMIX("LANGMD.MIX");
-            if (LangMD != null) {
+            if (LangMD != null)
+            {
                 Debug.WriteLine(String.Join("\n", LangMD.EntriesText));
                 MIX Audio = FileSystem.LoadMIX("AUDIOMD.MIX");
-                if (Audio != null) {
+                if (Audio != null)
+                {
                     Debug.WriteLine("Success");
 
                     Debug.WriteLine(String.Join("\n", Audio.EntriesText));
-                } else {
+                }
+                else
+                {
                     Debug.WriteLine("No Audio");
                 }
-            } else {
+            }
+            else
+            {
                 Debug.WriteLine("No Lang");
             }
         }
 
-        private void InitializeDragDrop() {
+        private void InitializeDragDrop()
+        {
             form.AllowDrop = true;
             form.DragEnter += new System.Windows.Forms.DragEventHandler(form_DragEnter);
             form.DragOver += new System.Windows.Forms.DragEventHandler(form_DragOver);
             form.DragDrop += new System.Windows.Forms.DragEventHandler(form_DragDrop);
         }
 
-        void form_DragEnter(object sender, System.Windows.Forms.DragEventArgs e) {
-            if (e.Data.GetDataPresent(System.Windows.Forms.DataFormats.FileDrop)) {
+        void form_DragEnter(object sender, System.Windows.Forms.DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(System.Windows.Forms.DataFormats.FileDrop))
+            {
                 e.Effect = System.Windows.Forms.DragDropEffects.Copy;
             }
         }
 
-        void form_DragOver(object sender, System.Windows.Forms.DragEventArgs e) {
-            if (e.Data.GetDataPresent(System.Windows.Forms.DataFormats.FileDrop)) {
+        void form_DragOver(object sender, System.Windows.Forms.DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(System.Windows.Forms.DataFormats.FileDrop))
+            {
                 e.Effect = System.Windows.Forms.DragDropEffects.Copy;
             }
         }
 
-        void form_DragDrop(object sender, System.Windows.Forms.DragEventArgs e) {
+        void form_DragDrop(object sender, System.Windows.Forms.DragEventArgs e)
+        {
 
-            if (e.Data.GetDataPresent(System.Windows.Forms.DataFormats.FileDrop)) {
+            if (e.Data.GetDataPresent(System.Windows.Forms.DataFormats.FileDrop))
+            {
                 string[] files = (string[])e.Data.GetData(System.Windows.Forms.DataFormats.FileDrop);
 
-                if (files != null) {
-                    lock (plock) {
+                if (files != null)
+                {
+                    lock (plock)
+                    {
                         var file = files[0];
                         var ext = Path.GetExtension(file).ToUpper();
 
-                        switch (ext) {
+                        switch (ext)
+                        {
                             //case ".PAL":
                             //    MousePalette = new PAL(file);
 
@@ -254,64 +304,65 @@ namespace CnCpp {
 
                                 LoadMap();
 
-                                if (MapTexture != null) {
+                                if (MapTexture != null)
+                                {
                                     MapTexture.Dispose();
                                     MapTexture = null;
                                 }
 
                                 break;
 
-                            //case ".CSF":
-                            //    var lbl = new CSF(file);
+                                //case ".CSF":
+                                //    var lbl = new CSF(file);
 
-                            //    Console.WriteLine("Loaded string table with {0} entries", lbl.Labels.Count);
+                                //    Console.WriteLine("Loaded string table with {0} entries", lbl.Labels.Count);
 
-                            //    break;
+                                //    break;
 
 
-                            //case ".IDX":
-                            //    var idx = new IDX(file);
+                                //case ".IDX":
+                                //    var idx = new IDX(file);
 
-                            //    Console.WriteLine("Loaded IDX with {0} samples", idx.Samples.Count);
+                                //    Console.WriteLine("Loaded IDX with {0} samples", idx.Samples.Count);
 
-                            //    var bagFile = file.Replace(Path.GetExtension(file), ".BAG");
-                            //    if (File.Exists(bagFile)) {
-                            //        var Bag = new BAG(bagFile);
-                            //        idx.ReadBAG(Bag);
+                                //    var bagFile = file.Replace(Path.GetExtension(file), ".BAG");
+                                //    if (File.Exists(bagFile)) {
+                                //        var Bag = new BAG(bagFile);
+                                //        idx.ReadBAG(Bag);
 
-                            //        var soundPlayer = new libZPlay.ZPlay();
+                                //        var soundPlayer = new libZPlay.ZPlay();
 
-                            //        var samplesToExtract = new List<String>() { /*"ichratc", */"ichratta" };
+                                //        var samplesToExtract = new List<String>() { /*"ichratc", */"ichratta" };
 
-                            //        foreach (var s in samplesToExtract) {
-                            //            var sample = idx.Samples[s];
-                            //            if (sample != null) {
-                            //                var output = sample.GetWaveHeader().Compile();
+                                //        foreach (var s in samplesToExtract) {
+                                //            var sample = idx.Samples[s];
+                                //            if (sample != null) {
+                                //                var output = sample.GetWaveHeader().Compile();
 
-                            //                var outFile = Path.GetDirectoryName(file) + Path.DirectorySeparatorChar + sample.Name + ".WAV";
+                                //                var outFile = Path.GetDirectoryName(file) + Path.DirectorySeparatorChar + sample.Name + ".WAV";
 
-                            //                using (var outWav = File.OpenWrite(outFile)) {
-                            //                    using (var writer = new BinaryWriter(outWav)) {
-                            //                        writer.Write(output);
-                            //                        writer.Flush();
-                            //                    }
-                            //                }
+                                //                using (var outWav = File.OpenWrite(outFile)) {
+                                //                    using (var writer = new BinaryWriter(outWav)) {
+                                //                        writer.Write(output);
+                                //                        writer.Flush();
+                                //                    }
+                                //                }
 
-                            //                if (!soundPlayer.OpenStream(false, false, ref output, (uint)output.Length, libZPlay.TStreamFormat.sfWav)) {
-                            //                    Console.WriteLine("Sound failed: {0}.", soundPlayer.GetError());
-                            //                    break;
-                            //                }
+                                //                if (!soundPlayer.OpenStream(false, false, ref output, (uint)output.Length, libZPlay.TStreamFormat.sfWav)) {
+                                //                    Console.WriteLine("Sound failed: {0}.", soundPlayer.GetError());
+                                //                    break;
+                                //                }
 
-                            //                if (!soundPlayer.StartPlayback()) {
-                            //                    Console.WriteLine("Sound failed: {0}.", soundPlayer.GetError());
-                            //                    break;
-                            //                }
+                                //                if (!soundPlayer.StartPlayback()) {
+                                //                    Console.WriteLine("Sound failed: {0}.", soundPlayer.GetError());
+                                //                    break;
+                                //                }
 
-                            //            }
-                            //        }
-                            //    }
+                                //            }
+                                //        }
+                                //    }
 
-                            //    break;
+                                //    break;
                         }
 
                     }
@@ -323,7 +374,8 @@ namespace CnCpp {
         /// LoadContent will be called once per game and is the place to load
         /// all of your content.
         /// </summary>
-        protected override void LoadContent() {
+        protected override void LoadContent()
+        {
             // Create a new SpriteBatch, which can be used to draw textures.
             spriteBatch = new SpriteBatch(GraphicsDevice);
 
@@ -334,7 +386,8 @@ namespace CnCpp {
         /// UnloadContent will be called once per game and is the place to unload
         /// all content.
         /// </summary>
-        protected override void UnloadContent() {
+        protected override void UnloadContent()
+        {
             // TODO: Unload any non ContentManager content here
         }
 
@@ -343,7 +396,10 @@ namespace CnCpp {
         /// checking for collisions, gathering input, and playing audio.
         /// </summary>
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
-        protected override void Update(GameTime gameTime) {
+        protected override void Update(GameTime gameTime)
+        {
+            tick++;
+
             // Allows the game to exit
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == Microsoft.Xna.Framework.Input.ButtonState.Pressed)
                 this.Exit();
@@ -352,7 +408,8 @@ namespace CnCpp {
             if (kState.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.Escape))
                 this.Exit();
 
-            if (TimeSinceLogicUpdate.TotalMilliseconds < 40) {
+            if (TimeSinceLogicUpdate.TotalMilliseconds < 40)
+            {
                 TimeSinceLogicUpdate += gameTime.ElapsedGameTime;
 
                 var down = kState.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.Down);
@@ -361,61 +418,87 @@ namespace CnCpp {
                 var left = kState.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.Left);
                 var right = kState.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.Right);
 
-                if (down) {
-                    if (combinedState.HasFlag(combinedKeyState.vUp)) {
+                if (down)
+                {
+                    if (combinedState.HasFlag(combinedKeyState.vUp))
+                    {
                         combinedState &= ~combinedKeyState.vUp;
-                    } else {
+                    }
+                    else
+                    {
                         combinedState |= combinedKeyState.vDown;
                     }
                 }
 
-                if (up) {
-                    if (combinedState.HasFlag(combinedKeyState.vDown)) {
+                if (up)
+                {
+                    if (combinedState.HasFlag(combinedKeyState.vDown))
+                    {
                         combinedState &= ~combinedKeyState.vDown;
-                    } else {
+                    }
+                    else
+                    {
                         combinedState |= combinedKeyState.vUp;
                     }
                 }
 
-                if (left) {
-                    if (combinedState.HasFlag(combinedKeyState.vRight)) {
+                if (left)
+                {
+                    if (combinedState.HasFlag(combinedKeyState.vRight))
+                    {
                         combinedState &= ~combinedKeyState.vRight;
-                    } else {
+                    }
+                    else
+                    {
                         combinedState |= combinedKeyState.vLeft;
                     }
                 }
 
-                if (right) {
-                    if (combinedState.HasFlag(combinedKeyState.vLeft)) {
+                if (right)
+                {
+                    if (combinedState.HasFlag(combinedKeyState.vLeft))
+                    {
                         combinedState &= ~combinedKeyState.vLeft;
-                    } else {
+                    }
+                    else
+                    {
                         combinedState |= combinedKeyState.vRight;
                     }
                 }
 
-            } else {
-                if (Map != null) {
+            }
+            else
+            {
+                if (Map != null)
+                {
 
                     var deltaX = 7;
                     var deltaY = 7;
 
                     TacticalClass.NudgeStatus moveStatus = TacticalClass.NudgeStatus.E_EDGE;
 
-                    if (combinedState.HasFlag(combinedKeyState.vUp)) {
+                    if (combinedState.HasFlag(combinedKeyState.vUp))
+                    {
                         moveStatus = Tactical.NudgeY(-deltaY);
-                    } else if (combinedState.HasFlag(combinedKeyState.vDown)) {
+                    }
+                    else if (combinedState.HasFlag(combinedKeyState.vDown))
+                    {
                         moveStatus = Tactical.NudgeY(+deltaY);
                     }
 
-                    if (combinedState.HasFlag(combinedKeyState.vLeft)) {
+                    if (combinedState.HasFlag(combinedKeyState.vLeft))
+                    {
                         moveStatus = Tactical.NudgeX(-deltaX);
-                    } else if (combinedState.HasFlag(combinedKeyState.vRight)) {
+                    }
+                    else if (combinedState.HasFlag(combinedKeyState.vRight))
+                    {
                         moveStatus = Tactical.NudgeX(+deltaX);
                     }
 
                     bool MapMoved = moveStatus != TacticalClass.NudgeStatus.E_EDGE;
 
-                    if (MapTexture == null || MapMoved) {
+                    if (MapTexture == null || MapMoved)
+                    {
                         MapTexture = Map.GetTexture(GraphicsDevice);
                     }
 
@@ -481,78 +564,96 @@ namespace CnCpp {
             //    effect.LightingEnabled = !effect.LightingEnabled;
             //}
 
-            //if (LoadedVoxels.Count > 0) {
-            //    var fcount = (int)(LoadedVoxels[0].MotLib.Header.FrameCount - 1);
-            //    if (kState.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.Z)) {
-            //        if (VoxelFrame < fcount) {
-            //            ++VoxelFrame;
-            //        } else {
-            //            VoxelFrame = 0;
-            //        }
-            //        VoxelChanged = true;
-            //    } else if (kState.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.X)) {
-            //        if (VoxelFrame > 0) {
-            //            --VoxelFrame;
-            //        } else {
-            //            VoxelFrame = fcount;
-            //        }
-            //        VoxelChanged = true;
-            //    }
-            //}
+            if (LoadedVoxels.Count > 0)
+            {
+                var fcount = (int)(LoadedVoxels[0].MotLib.Header.FrameCount - 1);
+                if (kState.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.Z))
+                {
+                    if (VoxelFrame < fcount)
+                    {
+                        ++VoxelFrame;
+                    }
+                    else
+                    {
+                        VoxelFrame = 0;
+                    }
+                    VoxelChanged = true;
+                }
+                else if (kState.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.X))
+                {
+                    if (VoxelFrame > 0)
+                    {
+                        --VoxelFrame;
+                    }
+                    else
+                    {
+                        VoxelFrame = fcount;
+                    }
+                    VoxelChanged = true;
+                }
+            }
 
 
             //// TODO: Add your update logic here
+
+            // DEBUG
+            DoOnce();
 
             var pos = Mouse.GetState();
 
             MousePos.X = pos.X;
             MousePos.Y = pos.Y;
 
-            if (MouseFrameChanged) {
+            if (MouseFrameChanged)
+            {
                 MouseTextures.GetTexture((uint)MouseFrame, ref MouseTexture);
             }
 
-            //if (VoxelChanged) {
-            //    VoxelChanged = false;
-            //    if (MousePalette != null) {
-            //        var combinedVertices = new List<VXL.VertexPositionColorNormal>();
-            //        var combinedIndices = new List<int>();
+            if (VoxelChanged)
+            {
+                VoxelChanged = false;
+                if (MousePalette != null)
+                {
+                    var combinedVertices = new List<VXL.VertexPositionColorNormal>();
+                    var combinedIndices = new List<short>();
 
-            //        foreach (var V in LoadedVoxels) {
-            //            var Vertices = new List<VXL.VertexPositionColorNormal>();
-            //            var Indices = new List<int>();
+                    foreach (var V in LoadedVoxels)
+                    {
+                        var Vertices = new List<VXL.VertexPositionColorNormal>();
+                        var Indices = new List<short>();
 
-            //            V.Voxel.GetVertices(MousePalette, VoxelFrame, Vertices, Indices);
+                        V.Voxel.GetVertices(MousePalette, VoxelFrame, Vertices, Indices);
 
-            //            var indexShift = combinedVertices.Count;
+                        var indexShift = combinedVertices.Count;
 
-            //            combinedVertices.AddRange(Vertices);
+                        combinedVertices.AddRange(Vertices);
 
-            //            combinedIndices.AddRange(Indices.Select(ix => ix + indexShift));
-            //            //  break;
-            //        }
+                        combinedIndices.AddRange(Indices.Select(ix => (short)(ix + indexShift)));
+                        //  break;
+                    }
 
-            //        VoxelContent = combinedVertices.ToArray();
-            //        VoxelIndices = combinedIndices.ToArray();
+                    VoxelContent = combinedVertices.ToArray();
+                    VoxelIndices = combinedIndices.ToArray();
 
-            //        //Console.WriteLine("Loaded {0} vertices and {1} indices", VoxelContent.Length, VoxelIndices.Length);
+                    //Console.WriteLine("Loaded {0} vertices and {1} indices", VoxelContent.Length, VoxelIndices.Length);
 
-            //        if (vertexBuffer != null) {
-            //            vertexBuffer.Dispose();
-            //        }
+                    if (vertexBuffer != null)
+                    {
+                        vertexBuffer.Dispose();
+                    }
 
-            //        // Initialize the vertex buffer, allocating memory for each vertex.
-            //        vertexBuffer = new VertexBuffer(graphics.GraphicsDevice, VXL.VertexPositionColorNormal.VertexDeclaration, VoxelContent.Length, BufferUsage.WriteOnly);
+                    // Initialize the vertex buffer, allocating memory for each vertex.
+                    vertexBuffer = new VertexBuffer(graphics.GraphicsDevice, VXL.VertexPositionColorNormal.VertexDeclaration, VoxelContent.Length, BufferUsage.WriteOnly);
 
-            //        // Set the vertex buffer data to the array of vertices.
-            //        vertexBuffer.SetData<VXL.VertexPositionColorNormal>(VoxelContent);
+                    // Set the vertex buffer data to the array of vertices.
+                    vertexBuffer.SetData<VXL.VertexPositionColorNormal>(VoxelContent);
 
-            //        indexBuffer = new IndexBuffer(graphics.GraphicsDevice, typeof(int), VoxelIndices.Length, BufferUsage.WriteOnly);
+                    indexBuffer = new IndexBuffer(graphics.GraphicsDevice, typeof(short), VoxelIndices.Length, BufferUsage.WriteOnly);
 
-            //        indexBuffer.SetData(VoxelIndices);
+                    indexBuffer.SetData(VoxelIndices);
 
-            //    }
-            //}
+                }
+            }
 
             base.Update(gameTime);
         }
@@ -561,7 +662,8 @@ namespace CnCpp {
         /// This is called when the game should draw itself.
         /// </summary>
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
-        protected override void Draw(GameTime gameTime) {
+        protected override void Draw(GameTime gameTime)
+        {
             GraphicsDevice.Clear(Color.CornflowerBlue);
 
             GraphicsDevice.Textures[0] = null;
@@ -573,15 +675,18 @@ namespace CnCpp {
 
             var v00 = new Vector2(0, 0);
 
-            if (MapTexture != null) {
+            if (MapTexture != null)
+            {
                 spriteBatch.Draw(MapTexture, v00, Color.White);
 
-                foreach (var t in Map.GetLayerTextures(GraphicsDevice)) {
+                foreach (var t in Map.GetLayerTextures(GraphicsDevice))
+                {
                     spriteBatch.Draw(t, v00, Color.White);
                 }
             }
 
-            if (MouseTexture != null) {
+            if (MouseTexture != null)
+            {
                 spriteBatch.Draw(MouseImage, MousePos, Color.White);
             }
 
@@ -596,29 +701,35 @@ namespace CnCpp {
             //}
 
 
-            //if (VoxelContent != null) {
-            //    worldMatrix = Matrix.Identity * Matrix.CreateScale(scale);
+            float rotateFactor = (float)Math.Sin(tick / 100.0f);
+            if (VoxelContent != null)
+            {
+                worldMatrix = Matrix.Identity * Matrix.CreateScale(scale);
 
-            //    effect.World = worldMatrix;
+                effect.World = worldMatrix;
 
-            //    projectionMatrix = Matrix.CreateOrthographic((float)GraphicsDevice.Viewport.Width, (float)GraphicsDevice.Viewport.Height, -1000.0f, 1000.0f);
+                projectionMatrix = Matrix.CreateOrthographic((float)GraphicsDevice.Viewport.Width, (float)GraphicsDevice.Viewport.Height, -1000.0f, 1000.0f);
 
-            //    effect.Projection = projectionMatrix;
+                effect.Projection = projectionMatrix;
 
-            //    viewMatrix = Matrix.CreateRotationX(rotation.X) * Matrix.CreateRotationY(rotation.Y) * Matrix.CreateRotationZ(rotation.Z) * Matrix.CreateTranslation(offX, offY, 0);
+                viewMatrix = Matrix.CreateRotationX(rotation.X * rotateFactor) *
+                             Matrix.CreateRotationY(rotation.Y * rotateFactor) * 
+                             Matrix.CreateRotationZ(rotation.Z * rotateFactor) * 
+                             Matrix.CreateTranslation(offX, offY, 0);
 
-            //    effect.View = viewMatrix;
+                effect.View = viewMatrix;
 
 
-            //    GraphicsDevice.SetVertexBuffer(vertexBuffer);
-            //    GraphicsDevice.Indices = indexBuffer;
+                GraphicsDevice.SetVertexBuffer(vertexBuffer);
+                GraphicsDevice.Indices = indexBuffer;
 
-            //    foreach (EffectPass pass in effect.CurrentTechnique.Passes) {
-            //        pass.Apply();
+                foreach (EffectPass pass in effect.CurrentTechnique.Passes)
+                {
+                    pass.Apply();
 
-            //        GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, VoxelContent.Length, 0, VoxelIndices.Length / 3);
-            //    }
-            //}
+                    GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, VoxelContent.Length, 0, VoxelIndices.Length / 3);
+                }
+            }
 
             base.Draw(gameTime);
         }
@@ -668,11 +779,13 @@ namespace CnCpp {
             return true;
         }
 
-        private void LoadGameFiles() {
+        private void LoadGameFiles()
+        {
             FileSystem.LoadMIX("LANGMD.MIX");
             FileSystem.LoadMIX("LANGUAGE.MIX");
 
-            for (var ix = 99; ix > 0; --ix) {
+            for (var ix = 99; ix > 0; --ix)
+            {
                 var pattern = String.Format("EXPANDMD{0:d2}.MIX", ix);
                 FileSystem.LoadMIX(pattern);
             }
@@ -685,11 +798,13 @@ namespace CnCpp {
             FileSystem.LoadMIX("LOCAL.MIX");
             FileSystem.LoadMIX("AUDIOMD.MIX");
 
-            foreach (var ecache in Directory.GetFiles(GameDir, "ECACHE*.MIX", SearchOption.TopDirectoryOnly)) {
+            foreach (var ecache in Directory.GetFiles(GameDir, "ECACHE*.MIX", SearchOption.TopDirectoryOnly))
+            {
                 FileSystem.LoadMIX(ecache);
             }
 
-            foreach (var elocal in Directory.GetFiles(GameDir, "ELOCAL*.MIX", SearchOption.TopDirectoryOnly)) {
+            foreach (var elocal in Directory.GetFiles(GameDir, "ELOCAL*.MIX", SearchOption.TopDirectoryOnly))
+            {
                 FileSystem.LoadMIX(elocal);
             }
 
@@ -707,53 +822,70 @@ namespace CnCpp {
             FileSystem.LoadMIX("MOVMD03.MIX");
 
             var str = FileSystem.LoadFile("RA2MD.CSF");
-            if (str != null) {
+            if (str != null)
+            {
                 new CSF(str);
             }
 
             var m = FileSystem.LoadFile("MOUSE.SHA");
-            if (m != null) {
+            if (m != null)
+            {
                 MouseTextures = new SHP(m);
                 MouseFrame = 0;
                 MouseFrameChanged = true;
-            } else {
+            }
+            else
+            {
                 throw new InvalidDataException();
             }
 
             var mp = FileSystem.LoadFile("MOUSEPAL.PAL");
-            if (mp != null) {
+            if (mp != null)
+            {
                 MousePalette = new PAL(mp);
                 MouseTextures.Palette = MousePalette;
-            } else {
+            }
+            else
+            {
                 throw new InvalidDataException();
             }
 
             var p = FileSystem.LoadFile("ANIM.PAL");
-            if (p != null) {
+            if (p != null)
+            {
                 AnimPalette = new PAL(p);
-            } else {
+            }
+            else
+            {
                 throw new InvalidDataException();
             }
 
 
             var rules = FileSystem.LoadFile("RULESMD.INI");
-            if (rules != null) {
+            if (rules != null)
+            {
                 INI.Rules_INI = new INI(rules);
-            } else {
+            }
+            else
+            {
                 throw new InvalidDataException();
             }
 
 
             var art = FileSystem.LoadFile("ARTMD.INI");
-            if (art != null) {
+            if (art != null)
+            {
                 INI.Art_INI = new INI(art);
-            } else {
+            }
+            else
+            {
                 throw new InvalidDataException();
             }
 
         }
 
-        private void LoadMap() {
+        private void LoadMap()
+        {
             //if (Map.Preview != null) {
             //    MapPreview = Map.GetPreviewTexture(GraphicsDevice);
             //} else {
@@ -787,7 +919,8 @@ namespace CnCpp {
 
         TacticalClass Tactical;
 
-        private void InitTacticalView() {
+        private void InitTacticalView()
+        {
             Tactical = TacticalClass.Create(graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight);
         }
 
