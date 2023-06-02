@@ -11,6 +11,7 @@ namespace RA2Lib.FileFormats.Binary {
         public static Dictionary<String, PAL> LoadedPalettes = new Dictionary<String, PAL>();
 
         private static PAL _GrayscalePalette;
+        private bool m_Compressed;
 
         public static PAL GrayscalePalette {
             get {
@@ -44,7 +45,9 @@ namespace RA2Lib.FileFormats.Binary {
         //    return LoadedPalettes[filename];
         //}
 
-        public PAL(CCFileClass ccFile = null) : base(ccFile) {
+        public PAL(CCFileClass ccFile = null, bool Compressed = true) : base(ccFile)
+        {
+            m_Compressed = Compressed;
         }
 
         private byte decompress_6_to_8(int v18) {
@@ -60,7 +63,14 @@ namespace RA2Lib.FileFormats.Binary {
                 byte G = r.ReadByte();
                 byte B = r.ReadByte();
 
-                Colors[i] = new Color(decompress_6_to_8(R), decompress_6_to_8(G), decompress_6_to_8(B), (byte)255);
+                if (m_Compressed)
+                {
+                    Colors[i] = new Color(decompress_6_to_8(R), decompress_6_to_8(G), decompress_6_to_8(B), (byte)255);
+                }
+                else
+                {
+                    Colors[i] = new Color(R, G, B, (byte)255);
+                }
             }
 
             return true;

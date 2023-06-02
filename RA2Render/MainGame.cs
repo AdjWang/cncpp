@@ -59,7 +59,7 @@ namespace CnCpp
         private bool VoxelChanged;
 
         private VXL.VertexPositionColorNormal[] VoxelContent;
-        private short[] VoxelIndices;
+        private int[] VoxelIndices;
 
         Matrix worldMatrix;
         Matrix viewMatrix;
@@ -78,7 +78,7 @@ namespace CnCpp
         private int offX, offY;
         private Vector3 rotation;
 
-        private float scale = 1f;
+        private float scale = 8.0f;
 
         private int tick = 0;
 
@@ -96,6 +96,48 @@ namespace CnCpp
         protected String GameDir = "";
 
         private bool m_DoOnceFlag = false;
+
+        private void _LoadVxl()
+        {
+            LoadedVoxels.Clear();
+            VoxelFrame = 0;
+
+            string name = "bfrt";
+            // string name = "bpln";
+            // string name = "disktur";
+            String vxl_file = $"D:\\practice\\RA2Resources\\{name}.vxl";
+            String hva_file = $"D:\\practice\\RA2Resources\\{name}.hva";
+            var body = VoxLib.Create(vxl_file, hva_file);
+            // var body = VoxLib.Create(vxl_file);
+            if (body != null)
+            {
+                VoxelChanged = true;
+                LoadedVoxels.Add(body);
+
+                Console.WriteLine("Loaded VXL with {0} sections", LoadedVoxels.Sum(v => v.Voxel.Sections.Count));
+
+                // dump to file
+                (string jsonVertices, string jsonIndices) = body.Voxel.Dump();
+                File.WriteAllText("D:\\practice\\RA2Resources\\vertices.json", jsonVertices);
+                File.WriteAllText("D:\\practice\\RA2Resources\\indices.json", jsonIndices);
+            }
+        }
+
+        private void _LoadMap()
+        {
+            // String file = "D:\\practice\\RA2Resources\\2peaks.map";
+            String file = "D:\\practice\\RA2Resources\\deathll.yrm";
+            Map = new MapClass(file);
+
+            LoadMap();
+
+            if (MapTexture != null)
+            {
+                MapTexture.Dispose();
+                MapTexture = null;
+            }
+        }
+
         private void DoOnce()
         {
             if (m_DoOnceFlag)
@@ -104,19 +146,8 @@ namespace CnCpp
             }
             m_DoOnceFlag = true;
 
-            LoadedVoxels.Clear();
-            VoxelFrame = 0;
-
-            String vxl_file = "C:\\Users\\49191\\Desktop\\test\\bfrt.vxl";
-            String hva_file = "C:\\Users\\49191\\Desktop\\test\\bfrt.hva";
-            var body = VoxLib.Create(vxl_file, hva_file);
-            if (body != null)
-            {
-                VoxelChanged = true;
-                LoadedVoxels.Add(body);
-
-                Console.WriteLine("Loaded VXL with {0} sections", LoadedVoxels.Sum(v => v.Voxel.Sections.Count));
-            }
+            _LoadVxl();
+            // _LoadMap();
         }
 
         public MainGame()
@@ -161,7 +192,7 @@ namespace CnCpp
             offY = defOY;
             rotation = defRotation;
 
-            if (FindGameDir("D:\\Games\\RA2\\RA2\\gamemd.exe"))
+            if (FindGameDir("D:\\practice\\RA2\\gamemd.exe"))
             {
                 FileSystem.MainDir = GameDir;
 
@@ -615,20 +646,20 @@ namespace CnCpp
                 if (MousePalette != null)
                 {
                     var combinedVertices = new List<VXL.VertexPositionColorNormal>();
-                    var combinedIndices = new List<short>();
+                    var combinedIndices = new List<int>();
 
                     foreach (var V in LoadedVoxels)
                     {
                         var Vertices = new List<VXL.VertexPositionColorNormal>();
-                        var Indices = new List<short>();
+                        var Indices = new List<int>();
 
-                        V.Voxel.GetVertices(MousePalette, VoxelFrame, Vertices, Indices);
+                        V.Voxel.GetVertices(VoxelFrame, Vertices, Indices);
 
                         var indexShift = combinedVertices.Count;
 
                         combinedVertices.AddRange(Vertices);
 
-                        combinedIndices.AddRange(Indices.Select(ix => (short)(ix + indexShift)));
+                        combinedIndices.AddRange(Indices.Select(ix => ix + indexShift));
                         //  break;
                     }
 
@@ -648,7 +679,7 @@ namespace CnCpp
                     // Set the vertex buffer data to the array of vertices.
                     vertexBuffer.SetData<VXL.VertexPositionColorNormal>(VoxelContent);
 
-                    indexBuffer = new IndexBuffer(graphics.GraphicsDevice, typeof(short), VoxelIndices.Length, BufferUsage.WriteOnly);
+                    indexBuffer = new IndexBuffer(graphics.GraphicsDevice, typeof(int), VoxelIndices.Length, BufferUsage.WriteOnly);
 
                     indexBuffer.SetData(VoxelIndices);
 
@@ -712,9 +743,9 @@ namespace CnCpp
 
                 effect.Projection = projectionMatrix;
 
-                viewMatrix = Matrix.CreateRotationX(rotation.X * rotateFactor) *
+                viewMatrix = Matrix.CreateRotationX(rotation.X) *
                              Matrix.CreateRotationY(rotation.Y * rotateFactor) * 
-                             Matrix.CreateRotationZ(rotation.Z * rotateFactor) * 
+                             Matrix.CreateRotationZ(rotation.Z) * 
                              Matrix.CreateTranslation(offX, offY, 0);
 
                 effect.View = viewMatrix;
