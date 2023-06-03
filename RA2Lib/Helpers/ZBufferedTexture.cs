@@ -5,14 +5,17 @@ using System.Text;
 
 using RA2Lib.XnaUtils;
 
-namespace RA2Lib.Helpers {
-    internal enum PixelPlacementStatus {
+namespace RA2Lib.Helpers
+{
+    internal enum PixelPlacementStatus
+    {
         S_OK = 1,
         E_BOUNDS = 2,
         E_ZINDEX = 3
     };
 
-    public class ZBufferedTexture {
+    public class ZBufferedTexture
+    {
         readonly Color DummyColor = new Color(0, 0, 0, 0);
 
         public int Width, Height;
@@ -22,7 +25,8 @@ namespace RA2Lib.Helpers {
         protected Color[] Pixels;
         protected int[] ZIndices;
 
-        public ZBufferedTexture(int W, int H) {
+        public ZBufferedTexture(int W, int H)
+        {
             Width = W;
             Height = H;
 
@@ -30,30 +34,35 @@ namespace RA2Lib.Helpers {
             ZIndices = new int[Width * Height];
         }
 
-        ~ZBufferedTexture() {
+        ~ZBufferedTexture()
+        {
             // if (_Texture != null) {
             //     _Texture.Dispose();
             //     _Texture = null;
             // }
         }
 
-        internal PixelPlacementStatus PutPixel(Color clr, int X, int Y, int Z) {
+        internal PixelPlacementStatus PutPixel(Color clr, int X, int Y, int Z)
+        {
 
-            if (X < 0 || X >= Width) {
+            if (X < 0 || X >= Width)
+            {
                 return PixelPlacementStatus.E_BOUNDS;
             }
 
-            if (Y < 0 || Y >= Height) {
+            if (Y < 0 || Y >= Height)
+            {
                 return PixelPlacementStatus.E_BOUNDS;
             }
 
             var ixPx = Y * Width + X;
 
-            if (ZIndices[ixPx] > Z) {
+            if (ZIndices[ixPx] > Z)
+            {
                 return PixelPlacementStatus.E_ZINDEX;
             }
 
-            Compiled = false;
+            // Compiled = false;
 
             Pixels[ixPx] = clr;
             ZIndices[ixPx] = Z;
@@ -61,15 +70,17 @@ namespace RA2Lib.Helpers {
             return PixelPlacementStatus.S_OK;
         }
 
-        public void Clear() {
-            for (var i = 0; i < Width * Height; ++i) {
+        public void Clear()
+        {
+            for (var i = 0; i < Width * Height; ++i)
+            {
                 Pixels[i] = DummyColor;
                 ZIndices[i] = 0;
             }
-            Compiled = false;
+            // Compiled = false;
         }
 
-        private bool Compiled = false;
+        // private bool Compiled = false;
 
         // public Texture2D Compile(GraphicsDevice gd) {
         //     if (_Texture == null) {
@@ -88,22 +99,41 @@ namespace RA2Lib.Helpers {
         //     tex.SetData(Pixels);
         // }
 
-        internal bool CopyBlockFrom(ZBufferedTexture tex, int shiftX, int shiftY, int shiftZ = 0, bool CopyTransparent = true) {
+        public byte[] GetPixelData()
+        {
+            List<byte> data = new();
+            foreach(Color pix in Pixels){
+                data.Add(pix.R);
+                data.Add(pix.G);
+                data.Add(pix.B);
+                data.Add(pix.A);
+            }
+            return data.ToArray();
+        }
+
+        internal bool CopyBlockFrom(ZBufferedTexture tex, int shiftX, int shiftY, int shiftZ = 0, bool CopyTransparent = true)
+        {
             var clipped = false;
-            for (var y = 0; y < tex.Height - Math.Abs(shiftY); ++y) {
-                for (var x = 0; x < tex.Width - Math.Abs(shiftX); ++x) {
+            for (var y = 0; y < tex.Height - Math.Abs(shiftY); ++y)
+            {
+                for (var x = 0; x < tex.Width - Math.Abs(shiftX); ++x)
+                {
                     var oldIx = y * tex.Width + x;
                     var shX = x + shiftX;
                     var shY = y + shiftY;
-                    if (shX >= 0 && shX < Width && shY >= 0 && shY < Height) {
+                    if (shX >= 0 && shX < Width && shY >= 0 && shY < Height)
+                    {
                         var newIx = shY * Width + shX;
 
                         var oldPx = tex.Pixels[oldIx];
-                        if (oldPx != RA2Lib.FileFormats.Binary.PAL.TranslucentColor || CopyTransparent) {
+                        if (oldPx != RA2Lib.FileFormats.Binary.PAL.TranslucentColor || CopyTransparent)
+                        {
                             Pixels[newIx] = tex.Pixels[oldIx];
                             ZIndices[newIx] = tex.ZIndices[oldIx] + shiftZ;
                         }
-                    } else {
+                    }
+                    else
+                    {
                         clipped = true;
                     }
                 }
@@ -120,25 +150,33 @@ namespace RA2Lib.Helpers {
         /// <param name="shiftZ"></param>
         /// <param name="CopyTransparent"></param>
         /// <returns>Was the texture clipped when drawing?</returns>
-        internal bool CopyTexture(ZBufferedTexture tex, CellStruct start, int shiftZ = 0, bool CopyTransparent = true) {
+        internal bool CopyTexture(ZBufferedTexture tex, CellStruct start, int shiftZ = 0, bool CopyTransparent = true)
+        {
             var clipped = false;
-            for (var y = 0; y < tex.Height; ++y) {
-                for (var x = 0; x < tex.Width; ++x) {
+            for (var y = 0; y < tex.Height; ++y)
+            {
+                for (var x = 0; x < tex.Width; ++x)
+                {
                     var oldIx = y * tex.Width + x;
                     var shX = x + start.X;
                     var shY = y + start.Y;
-                    if (shX >= 0 && shX < Width && shY >= 0 && shY < Height) {
+                    if (shX >= 0 && shX < Width && shY >= 0 && shY < Height)
+                    {
                         var newIx = shY * Width + shX;
 
                         var oldPx = tex.Pixels[oldIx];
-                        if (oldPx != DummyColor || CopyTransparent) {
+                        if (oldPx != DummyColor || CopyTransparent)
+                        {
                             var ixZ = tex.ZIndices[oldIx] + shiftZ;
-                            if (ixZ >= ZIndices[newIx]) {
+                            if (ixZ >= ZIndices[newIx])
+                            {
                                 Pixels[newIx] = tex.Pixels[oldIx];
                                 ZIndices[newIx] = ixZ;
                             }
                         }
-                    } else {
+                    }
+                    else
+                    {
                         clipped = true;
                     }
                 }

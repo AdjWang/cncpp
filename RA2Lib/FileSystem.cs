@@ -11,6 +11,10 @@ namespace RA2Lib {
 
         private static Dictionary<String, CCFileClass> LoadedFiles = new Dictionary<string, CCFileClass>();
 
+        public static bool IsLoaded(string filename) {
+            return LoadedFiles.ContainsKey(filename);
+        }
+
         public static CCFileClass LoadFile(String filename) {
             if (LoadedFiles.ContainsKey(filename)) {
                 var Loaded = LoadedFiles[filename];

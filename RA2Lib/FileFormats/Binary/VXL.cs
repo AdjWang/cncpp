@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.IO;
 using System.Diagnostics;
-using Newtonsoft.Json;
+// using Newtonsoft.Json;
 
 using RA2Lib.XnaUtils;
 
@@ -1017,27 +1017,27 @@ namespace RA2Lib.FileFormats.Binary {
             }
         }
 
-        public (string, string) Dump()
-        {
-            var Vertices = new List<VXL.VertexPositionColorNormal>();
-            var Indices = new List<uint>();
+        // public (string, string) Dump()
+        // {
+        //     var Vertices = new List<VXL.VertexPositionColorNormal>();
+        //     var Indices = new List<uint>();
 
-            GetVertices(0, Vertices, Indices);
+        //     GetVertices(0, Vertices, Indices);
 
-            // var ComputedVertices = new List<VXL.VertexPositionColorNormal>();
-            // foreach (var v in Vertices)
-            // {
-            //     var realPos = Sections[0].Tail.Displacement(v.Position.X, v.Position.Y, v.Position.Z);
-            //     VXL.VertexPositionColorNormal vertex = new VXL.VertexPositionColorNormal() {
-            //         Position = realPos,
-            //         Color = v.Color,
-            //         Normal = v.Normal,
-            //     };
-            //     ComputedVertices.Add(vertex);
-            // }
+        //     // var ComputedVertices = new List<VXL.VertexPositionColorNormal>();
+        //     // foreach (var v in Vertices)
+        //     // {
+        //     //     var realPos = Sections[0].Tail.Displacement(v.Position.X, v.Position.Y, v.Position.Z);
+        //     //     VXL.VertexPositionColorNormal vertex = new VXL.VertexPositionColorNormal() {
+        //     //         Position = realPos,
+        //     //         Color = v.Color,
+        //     //         Normal = v.Normal,
+        //     //     };
+        //     //     ComputedVertices.Add(vertex);
+        //     // }
 
-            return (JsonConvert.SerializeObject(Vertices), JsonConvert.SerializeObject(Indices));
-        }
+        //     return (JsonConvert.SerializeObject(Vertices), JsonConvert.SerializeObject(Indices));
+        // }
     }
 
     public class VoxLib {
@@ -1057,8 +1057,10 @@ namespace RA2Lib.FileFormats.Binary {
             if (HVAName == null) {
                 HVAName = VXLName.Replace(Path.GetExtension(VXLName), ".hva");
             }
-            Debug.Assert(File.Exists(VXLName));
-            Debug.Assert(File.Exists(HVAName));
+            // Debug.Assert(File.Exists(VXLName));
+            // Debug.Assert(File.Exists(HVAName));
+            // Debug.Assert(FileSystem.IsLoaded(VXLName));
+            // Debug.Assert(FileSystem.IsLoaded(HVAName));
             return new VoxLib(VXLName, HVAName);
         }
     }

@@ -93,22 +93,22 @@ namespace RA2Render
             Gl = GL.GetApi(window);
             Debug.Assert(Gl != null);
 
+            var ra2mdmix = RA2Lib.FileSystem.LoadMIX("D:\\Games\\RA2\\RA2\\ra2md.mix");
+            Debug.Assert(ra2mdmix != null);
+            RA2Lib.FileSystem.LoadMIX("localmd.mix");
+
             TempMesh = new VoxelMesh(Gl, Vertices, Indices);
             // load vxl model
             // string name = "bfrt";
-            // // string name = "bpln";
-            // // string name = "disktur";
-            // string vxlPath = $"D:\\practice\\RA2Resources\\{name}.vxl";
-            // string hvaPath = $"D:\\practice\\RA2Resources\\{name}.hva";
-            string vxlPath = "F:\\Practice\\RA2\\test\\bfrt.vxl";
-            string hvaPath = "F:\\Practice\\RA2\\test\\bfrt.hva";
-            Model = new VoxelModel(Gl, new string[] { vxlPath }, new string[] { hvaPath });
+            // string name = "bpln";
+            string name = "disktur";
+            Model = new VoxelModel(Gl, new string[] { $"{name}.vxl" }, new string[] { $"{name}.hva" });
 
             //Start a camera at position 3 on the Z axis, looking at position -1 on the Z axis
-            Camera = new Camera(Vector3.UnitZ * 6, Vector3.UnitZ * -1, Vector3.UnitY, Width / Height);
+            Camera = new Camera(Vector3.UnitZ * 6, Vector3.UnitZ * -1, Vector3.UnitY * 1, Width / Height);
 
-            string vertShaderPath = "F:\\Practice\\cncpp\\RA2Render\\Model\\common_shader_vert.txt";
-            string fragShaderPath = "F:\\Practice\\cncpp\\RA2Render\\Model\\common_shader_frag.txt";
+            string vertShaderPath = ".\\RA2Render\\Model\\common_shader_vert.txt";
+            string fragShaderPath = ".\\RA2Render\\Model\\common_shader_frag.txt";
             Shader = new Shader(Gl, vertShaderPath, fragShaderPath, inline: false);
         }
 
@@ -116,33 +116,26 @@ namespace RA2Render
         {
             Debug.Assert(Gl != null);
             Gl.Enable(EnableCap.DepthTest);
-            //Clear the color channel.
             Gl.Clear((uint)ClearBufferMask.ColorBufferBit | (uint)ClearBufferMask.DepthBufferBit);
+            //Clear the color channel.
+            // Gl.Clear((uint)ClearBufferMask.ColorBufferBit);
+
+            Shader.Use();
+            SetShaderUniforms();
+            var difference = (float)(window.Time);
+            var transform = Matrix4x4.CreateRotationZ(difference) *
+                            Matrix4x4.CreateRotationY(0.0f) *
+                            Matrix4x4.CreateRotationX(-15.0f);
+            Shader.SetUniform("transform", transform);
 
             foreach (var mesh in Model.Meshes)
             {
                 mesh.Bind();
-
-                Shader.Use();
-                SetShaderUniforms();
-                var difference = (float)(window.Time);
-                var transform = Matrix4x4.CreateRotationY(0.7f * difference) *
-                                Matrix4x4.CreateRotationX(difference);
-                Shader.SetUniform("transform", transform);
-
                 Gl.DrawElements(PrimitiveType.Triangles, (uint)mesh.Indices.Length, DrawElementsType.UnsignedInt, null);
             }
 
             {
                 TempMesh.Bind();
-
-                Shader.Use();
-                SetShaderUniforms();
-                var difference = (float)(window.Time);
-                var transform = Matrix4x4.CreateRotationY(0.7f * difference) *
-                                Matrix4x4.CreateRotationX(difference);
-                Shader.SetUniform("transform", transform);
-
                 Gl.DrawElements(PrimitiveType.Triangles, (uint)Indices.Length, DrawElementsType.UnsignedInt, null);
             }
         }

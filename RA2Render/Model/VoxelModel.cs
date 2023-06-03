@@ -1,12 +1,12 @@
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using Silk.NET.OpenGL;
 using System;
 using System.Diagnostics;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using Silk.NET.OpenGL;
 
 namespace RA2Render
 {
