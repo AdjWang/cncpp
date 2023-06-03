@@ -1,9 +1,8 @@
 ﻿using System;
+using System.Drawing;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework;
 
 namespace RA2Lib.Helpers {
     internal enum PixelPlacementStatus {
@@ -17,7 +16,7 @@ namespace RA2Lib.Helpers {
 
         public int Width, Height;
 
-        protected Texture2D _Texture;
+        // protected Texture2D _Texture;
 
         protected Color[] Pixels;
         protected int[] ZIndices;
@@ -71,22 +70,22 @@ namespace RA2Lib.Helpers {
 
         private bool Compiled = false;
 
-        public Texture2D Compile(GraphicsDevice gd) {
-            if (_Texture == null) {
-                _Texture = new Texture2D(gd, Width, Height, false, SurfaceFormat.Color);
-            }
-            if (!Compiled) {
-                _Texture.SetData(Pixels);
-            }
+        // public Texture2D Compile(GraphicsDevice gd) {
+        //     if (_Texture == null) {
+        //         _Texture = new Texture2D(gd, Width, Height, false, SurfaceFormat.Color);
+        //     }
+        //     if (!Compiled) {
+        //         _Texture.SetData(Pixels);
+        //     }
 
-            Compiled = true;
+        //     Compiled = true;
 
-            return _Texture;
-        }
+        //     return _Texture;
+        // }
 
-        public void ApplyTo(Texture2D tex) {
-            tex.SetData(Pixels);
-        }
+        // public void ApplyTo(Texture2D tex) {
+        //     tex.SetData(Pixels);
+        // }
 
         internal bool CopyBlockFrom(ZBufferedTexture tex, int shiftX, int shiftY, int shiftZ = 0, bool CopyTransparent = true) {
             var clipped = false;

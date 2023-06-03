@@ -1,10 +1,9 @@
 ﻿using System;
+using System.Drawing;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.IO;
-using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework;
 using System.Diagnostics;
 
 namespace RA2Lib.FileFormats.Binary {
@@ -93,8 +92,8 @@ namespace RA2Lib.FileFormats.Binary {
                 Height = data.Array[offs + 40];
                 TerrainType = data.Array[offs + 41];
                 RampType = data.Array[offs + 42];
-                RadarLeftColor = new Color(data.Array[offs + 43], data.Array[offs + 44], data.Array[offs + 45]);
-                RadarRightColor = new Color(data.Array[offs + 46], data.Array[offs + 47], data.Array[offs + 48]);
+                RadarLeftColor = new Color(data.Array[offs + 43], data.Array[offs + 44], data.Array[offs + 45], 1.0f);
+                RadarRightColor = new Color(data.Array[offs + 46], data.Array[offs + 47], data.Array[offs + 48], 1.0f);
 
                 Bounds = new Rectangle(0, 0, TileWidth, TileHeight);
 

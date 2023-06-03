@@ -37,11 +37,9 @@ namespace RA2Render
         private IWindow window;
         private GL? Gl;
 
-        private static BufferObject<float> Vbo;
-        private static BufferObject<uint> Ebo;
-        private static VertexArrayObject<float, uint> Vao;
         private Shader Shader;
         private Camera Camera;
+        private VoxelModel Model;
 
         private const int Width = 800;
         private const int Height = 600;
@@ -125,15 +123,10 @@ namespace RA2Render
         private void SetShaderUniforms()
         {
             // Creating Projection Matrix
-            // var model = Matrix4x4.CreateRotationY(MathHelper.DegreesToRadians(difference)) *
-            //             Matrix4x4.CreateRotationX(MathHelper.DegreesToRadians(difference));
             var model = Matrix4x4.CreateRotationY(0.0f) *
                         Matrix4x4.CreateRotationX(0.0f);
-            // var view = Matrix4x4.CreateLookAt(CameraPosition, CameraPosition + CameraFront, CameraUp);
             var view = Camera.GetViewMatrix();
-            // var projection = Matrix4x4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(CameraZoom), Width / Height, 0.1f, 100.0f);
             var projection = Camera.GetProjectionMatrix();
-
             Shader.SetUniform("model", model);
             Shader.SetUniform("view", view);
             Shader.SetUniform("projection", projection);
@@ -175,18 +168,13 @@ namespace RA2Render
             Gl = GL.GetApi(window);
             Debug.Assert(Gl != null);
 
-
-            Ebo = new BufferObject<uint>(Gl, Indices, BufferTargetARB.ElementArrayBuffer);
-            Vbo = new BufferObject<float>(Gl, Vertices, BufferTargetARB.ArrayBuffer);
-            Vao = new VertexArrayObject<float, uint>(Gl, Vbo, Ebo);
-            //Tell opengl how to give the data to the shaders.
-            uint vertexLineSize = 10;
-            uint position = 0;
-            uint color = 1;
-            uint normal = 2;
-            Vao.VertexAttributePointer(position, /*count*/3, VertexAttribPointerType.Float, vertexLineSize, /*offset*/0);
-            Vao.VertexAttributePointer(color, /*count*/4, VertexAttribPointerType.Float, vertexLineSize, /*offset*/3);
-            Vao.VertexAttributePointer(normal, /*count*/3, VertexAttribPointerType.Float, vertexLineSize, /*offset*/7);
+            // TODO: load vxl model
+            string name = "bfrt";
+            // string name = "bpln";
+            // string name = "disktur";
+            string vxlPath = $"D:\\practice\\RA2Resources\\{name}.vxl";
+            string hvaPath = $"D:\\practice\\RA2Resources\\{name}.hva";
+            Model = new VoxelModel(Gl, new string[] { vxlPath }, new string[] { hvaPath });
 
             //Start a camera at position 3 on the Z axis, looking at position -1 on the Z axis
             Camera = new Camera(Vector3.UnitZ * 6, Vector3.UnitZ * -1, Vector3.UnitY, Width / Height);
@@ -201,18 +189,19 @@ namespace RA2Render
             //Clear the color channel.
             Gl.Clear((uint)ClearBufferMask.ColorBufferBit);
 
-            //Bind the geometry and shader.
-            Vao.Bind();
+            foreach (var mesh in Model.Meshes)
+            {
+                mesh.Bind();
 
-            Shader.Use();
-            SetShaderUniforms();
-            var difference = (float)(window.Time);
-            var transform = Matrix4x4.CreateRotationY(difference) *
-                            Matrix4x4.CreateRotationX(difference);
-            Shader.SetUniform("transform", transform);
+                Shader.Use();
+                SetShaderUniforms();
+                var difference = (float)(window.Time);
+                var transform = Matrix4x4.CreateRotationY(difference) *
+                                Matrix4x4.CreateRotationX(difference);
+                Shader.SetUniform("transform", transform);
 
-            //Draw the geometry.
-            Gl.DrawElements(PrimitiveType.Triangles, (uint)Indices.Length, DrawElementsType.UnsignedInt, null);
+                Gl.DrawElements(PrimitiveType.Triangles, (uint)mesh.Indices.Length, DrawElementsType.UnsignedInt, null);
+            }
         }
 
         private void OnUpdate(double obj)

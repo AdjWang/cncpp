@@ -1,8 +1,8 @@
 ﻿using System;
+using System.Drawing;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Microsoft.Xna.Framework;
 using RA2Lib.FileFormats.Binary;
 using System.Diagnostics;
 using RA2Lib.AbstractHierarchy;

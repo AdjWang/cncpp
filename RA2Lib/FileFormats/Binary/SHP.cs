@@ -1,11 +1,10 @@
 ﻿using System;
+using System.Drawing;
+using System.Numerics;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.IO;
-using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Graphics.PackedVector;
-using Microsoft.Xna.Framework;
 using System.Diagnostics;
 
 namespace RA2Lib.FileFormats.Binary {

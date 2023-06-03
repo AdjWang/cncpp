@@ -1,0 +1,22 @@
+#version 330 core
+
+uniform mat4 view;
+uniform mat4 model;
+uniform mat4 projection;
+uniform mat4 transform; 
+
+layout (location = 0) in vec3 aPosition;
+layout (location = 1) in vec4 aColor;
+layout (location = 2) in vec3 aNormal;
+
+out vec3 Normal;
+out vec3 FragPos;
+out vec4 Color;
+
+void main(void)
+{
+    Normal = aNormal;
+    FragPos = vec3(view * model * vec4(aPosition, 1.0));       
+    Color = aColor;	
+    gl_Position = projection * view * model * transform * vec4(aPosition, 1.0);
+}
