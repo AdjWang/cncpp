@@ -1,8 +1,9 @@
 ﻿using System;
-using System.Drawing;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+
+using RA2Lib.XnaUtils;
 
 namespace RA2Lib.Helpers {
     internal enum PixelPlacementStatus {
@@ -30,10 +31,10 @@ namespace RA2Lib.Helpers {
         }
 
         ~ZBufferedTexture() {
-            if (_Texture != null) {
-                _Texture.Dispose();
-                _Texture = null;
-            }
+            // if (_Texture != null) {
+            //     _Texture.Dispose();
+            //     _Texture = null;
+            // }
         }
 
         internal PixelPlacementStatus PutPixel(Color clr, int X, int Y, int Z) {

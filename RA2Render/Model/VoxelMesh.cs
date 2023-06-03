@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Diagnostics;
 using System.Collections.Generic;
 using Silk.NET.OpenGL;
 
@@ -46,7 +47,6 @@ namespace RA2Render
 
         public void Dispose()
         {
-            Textures = null;
             VAO.Dispose();
             VBO.Dispose();
             EBO.Dispose();

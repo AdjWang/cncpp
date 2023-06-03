@@ -4,9 +4,7 @@ using System.Linq;
 using System.Text;
 using RA2Lib.FileFormats.Text;
 using System.IO;
-//using System.Drawing;
-using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework;
+using System.Drawing;
 using System.Diagnostics;
 
 namespace RA2Lib {
@@ -22,7 +20,7 @@ namespace RA2Lib {
 
         public CellClass[] Cells = new CellClass[512 * 512];
 
-        protected List<Helpers.ZBufferedTexture> LayerTextures = new List<Helpers.ZBufferedTexture>();
+        // protected List<Helpers.ZBufferedTexture> LayerTextures = new List<Helpers.ZBufferedTexture>();
 
         public class CellIterator {
             int NextX;
@@ -245,41 +243,41 @@ namespace RA2Lib {
 
         internal List<CellClass> VisibleCells = new List<CellClass>();
 
-        public Texture2D GetTexture(GraphicsDevice gd) {
-            var Tactical = TacticalClass.Instance;
+        // public Texture2D GetTexture(GraphicsDevice gd) {
+        //     var Tactical = TacticalClass.Instance;
 
-            var Reusable = Rectangle.Intersect(LastScreenArea, Tactical.ScreenArea);
+        //     var Reusable = Rectangle.Intersect(LastScreenArea, Tactical.ScreenArea);
 
-            var shiftX = LastScreenArea.X - Tactical.ScreenArea.X;
-            var shiftY = LastScreenArea.Y - Tactical.ScreenArea.Y;
+        //     var shiftX = LastScreenArea.X - Tactical.ScreenArea.X;
+        //     var shiftY = LastScreenArea.Y - Tactical.ScreenArea.Y;
 
-            if (TileTexture == null) {
-                TileTexture = new Helpers.ZBufferedTexture(Tactical.Width, Tactical.Height);
-            } else {
-                TileTexture.Clear();
-            }
+        //     if (TileTexture == null) {
+        //         TileTexture = new Helpers.ZBufferedTexture(Tactical.Width, Tactical.Height);
+        //     } else {
+        //         TileTexture.Clear();
+        //     }
 
-            //if (LastTextureData != null) {
-            //    //TileTexture.CopyBlockFrom(LastTextureData, shiftX, shiftY);
-            //}
+        //     //if (LastTextureData != null) {
+        //     //    //TileTexture.CopyBlockFrom(LastTextureData, shiftX, shiftY);
+        //     //}
 
-            VisibleCells.Clear();
+        //     VisibleCells.Clear();
 
-            foreach(var c in cellIter.Range()) {
-                Tactical.UpdateCellPosition(c);
-                if (c.VisibleInTactical) {
-                    VisibleCells.Add(c);
-                }
-            }
+        //     foreach(var c in cellIter.Range()) {
+        //         Tactical.UpdateCellPosition(c);
+        //         if (c.VisibleInTactical) {
+        //             VisibleCells.Add(c);
+        //         }
+        //     }
 
-            foreach (var c in VisibleCells) {
-                c.Draw(TileTexture);
-            }
+        //     foreach (var c in VisibleCells) {
+        //         c.Draw(TileTexture);
+        //     }
 
-            LastScreenArea = Tactical.ScreenArea;
+        //     LastScreenArea = Tactical.ScreenArea;
 
-            return TileTexture.Compile(gd);
-        }
+        //     return TileTexture.Compile(gd);
+        // }
 
         internal CellClass GetCellAt(CellStruct xy) {
             if (xy.X < 0 || xy.X > 511 || xy.Y < 0 || xy.Y > 511) {
@@ -289,30 +287,30 @@ namespace RA2Lib {
             return Cells[idxCell];
         }
 
-        public IEnumerable<Texture2D> GetLayerTextures(GraphicsDevice gd) {
-            var Tactical = TacticalClass.Instance;
+        // public IEnumerable<Texture2D> GetLayerTextures(GraphicsDevice gd) {
+        //     var Tactical = TacticalClass.Instance;
 
-            Helpers.ZBufferedTexture T;
+        //     Helpers.ZBufferedTexture T;
 
-            if (LayerTextures.Count == 0) {
-                T = new Helpers.ZBufferedTexture(Tactical.Width, Tactical.Height);
-                LayerTextures.Add(T);
-            } else {
-                T = LayerTextures[0];
-            }
+        //     if (LayerTextures.Count == 0) {
+        //         T = new Helpers.ZBufferedTexture(Tactical.Width, Tactical.Height);
+        //         LayerTextures.Add(T);
+        //     } else {
+        //         T = LayerTextures[0];
+        //     }
 
-            T.Clear();
-            foreach (var c in VisibleCells) {
-                c.DrawOverlays(T);
-            }
+        //     T.Clear();
+        //     foreach (var c in VisibleCells) {
+        //         c.DrawOverlays(T);
+        //     }
 
-            foreach (var c in VisibleCells) {
-                for (var obj = c.FirstObject.Value; obj != null; obj = obj.NextObject.Value) {
-                    obj.Draw(T);
-                }
-            }
+        //     foreach (var c in VisibleCells) {
+        //         for (var obj = c.FirstObject.Value; obj != null; obj = obj.NextObject.Value) {
+        //             obj.Draw(T);
+        //         }
+        //     }
 
-            return LayerTextures.Select(TX => TX.Compile(gd));
-        }
+        //     return LayerTextures.Select(TX => TX.Compile(gd));
+        // }
     }
 }

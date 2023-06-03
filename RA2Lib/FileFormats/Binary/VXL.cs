@@ -1,12 +1,12 @@
 ﻿using System;
-using System.Drawing;
-using System.Numerics;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.IO;
 using System.Diagnostics;
 using Newtonsoft.Json;
+
+using RA2Lib.XnaUtils;
 
 namespace RA2Lib.FileFormats.Binary {
     public class VXL : BinaryFileFormat {
@@ -658,6 +658,11 @@ namespace RA2Lib.FileFormats.Binary {
                 return displ;
             }
 
+            public Vector3 Normalize(Vector3 pos)
+            {
+                return new(pos.X / SizeX, pos.Y / SizeY, pos.Z / SizeZ);
+            }
+
             enum CornerTags {
                 HHL = 0,
                 HLL = 1,
@@ -697,7 +702,7 @@ namespace RA2Lib.FileFormats.Binary {
 
         internal class SectionFrame {
             public List<VertexPositionColorNormal> ComputedVertices = new List<VertexPositionColorNormal>();
-            public List<int> ComputedIndices = new List<int>();
+            public List<uint> ComputedIndices = new List<uint>();
         }
 
         public class Section {
@@ -766,12 +771,12 @@ namespace RA2Lib.FileFormats.Binary {
             }
 
             private List<VertexPositionColorNormal> ComputedVertices;
-            private List<int> ComputedIndices;
+            private List<uint> ComputedIndices;
 
             internal void ComputeVerticesIndices(PAL Palette) {
                 if (ComputedVertices == null) {
                     ComputedVertices = new List<VertexPositionColorNormal>();
-                    ComputedIndices = new List<int>();
+                    ComputedIndices = new List<uint>();
 
                     var Normals = GetNormals();
 
@@ -799,14 +804,14 @@ namespace RA2Lib.FileFormats.Binary {
 
                             var realPos = Tail.Displacement(v.X, v.Y, v.Z);
 
-                            int start = ComputedVertices.Count;
+                            uint start = (uint)ComputedVertices.Count;
 
                             foreach (var sh in shifts) {
                                 var vpcn = new VertexPositionColorNormal();
 
                                 var scaledShift = sh * Tail.Scale;
 
-                                var pos = realPos + scaledShift;
+                                var pos = Tail.Normalize(realPos + scaledShift);
 
                                 vpcn.Position = pos;
                                 vpcn.Color = Clr;
@@ -884,7 +889,7 @@ namespace RA2Lib.FileFormats.Binary {
                 }
             }
 
-            internal void GetVertices(HVA.Section MotLib, int FrameIdx, PAL Palette, List<VertexPositionColorNormal> Vertices, List<int> Indices) {
+            internal void GetVertices(HVA.Section MotLib, int FrameIdx, PAL Palette, List<VertexPositionColorNormal> Vertices, List<uint> Indices) {
                 if (ComputedFrames[FrameIdx] == null) {
                     ComputeVerticesIndices(Palette);
 
@@ -997,7 +1002,7 @@ namespace RA2Lib.FileFormats.Binary {
             return true;
         }
 
-        public void GetVertices(int FrameIdx, List<VertexPositionColorNormal> Vertices, List<int> Indices, PAL? Palette=null)
+        public void GetVertices(int FrameIdx, List<VertexPositionColorNormal> Vertices, List<uint> Indices, PAL? Palette=null)
         {
             PAL? palette = Palette ?? Header.Palette;
             for (var i = 0; i < Sections.Count; ++i)
@@ -1013,7 +1018,7 @@ namespace RA2Lib.FileFormats.Binary {
         public (string, string) Dump()
         {
             var Vertices = new List<VXL.VertexPositionColorNormal>();
-            var Indices = new List<int>();
+            var Indices = new List<uint>();
 
             GetVertices(0, Vertices, Indices);
 
@@ -1050,10 +1055,9 @@ namespace RA2Lib.FileFormats.Binary {
             if (HVAName == null) {
                 HVAName = VXLName.Replace(Path.GetExtension(VXLName), ".hva");
             }
-            if (File.Exists(VXLName) && File.Exists(HVAName)) {
-                return new VoxLib(VXLName, HVAName);
-            }
-            return null;
+            Debug.Assert(File.Exists(VXLName));
+            Debug.Assert(File.Exists(HVAName));
+            return new VoxLib(VXLName, HVAName);
         }
     }
 }

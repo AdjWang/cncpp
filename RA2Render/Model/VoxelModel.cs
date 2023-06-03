@@ -1,7 +1,6 @@
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using Silk.NET.Assimp;
 using Silk.NET.OpenGL;
 using System;
 using System.Diagnostics;
@@ -17,8 +16,8 @@ namespace RA2Render
         {
             _gl = gl;
 
-            Debug.Assert(vxls.Count == hvas.Count);
-            for (int i = 0; i < vxls.Count; i++)
+            Debug.Assert(vxls.Count() == hvas.Count());
+            for (int i = 0; i < vxls.Count(); i++)
             {
                 LoadModel(vxls[i], hvas[i]);
             }
@@ -26,29 +25,29 @@ namespace RA2Render
 
         private readonly GL _gl;
 
-        public List<Mesh> Meshes { get; protected set; } = new List<Mesh>();
+        public List<VoxelMesh> Meshes { get; protected set; } = new List<VoxelMesh>();
 
         private unsafe void LoadModel(string vxlPath, string hvaPath)
         {
-            var vxl = VoxLib.Create(vxlPath, hvaPath);
+            var vxl = RA2Lib.FileFormats.Binary.VoxLib.Create(vxlPath, hvaPath);
             // TODO: more frames?
-            Meshes.Add(ProcessMesh(vxl.Voxel));
+            Meshes.Add(ProcessMesh(vxl));
         }
 
-        private unsafe Mesh ProcessMesh(RA2Lib.VXL voxel)
+        private unsafe VoxelMesh ProcessMesh(RA2Lib.FileFormats.Binary.VoxLib voxel)
         {
             // data to fill
-            var Vertices = new List<RA2Lib.VXL.VertexPositionColorNormal>();
-            var Indices = new List<int>();
+            var vertices = new List<RA2Lib.FileFormats.Binary.VXL.VertexPositionColorNormal>();
+            var indices = new List<uint>();
 
-            vxl.Voxel.GetVertices(/*FrameIdx*/0, /*out*/Vertices, /*out*/Indices);
+            voxel.Voxel.GetVertices(/*FrameIdx*/0, /*out*/vertices, /*out*/indices);
 
             // return a mesh object created from the extracted mesh data
-            var result = new Mesh(_gl, BuildVertices(vertices), BuildIndices(indices));
+            var result = new VoxelMesh(_gl, BuildVertices(vertices), BuildIndices(indices));
             return result;
         }
 
-        private float[] BuildVertices(List<RA2Lib.VXL.VertexPositionColorNormal> vertexCollection)
+        private float[] BuildVertices(List<RA2Lib.FileFormats.Binary.VXL.VertexPositionColorNormal> vertexCollection)
         {
             var vertices = new List<float>();
 

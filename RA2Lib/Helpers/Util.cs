@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Drawing;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+
 
 namespace RA2Lib.Helpers {
     public class Util {
@@ -42,6 +44,6 @@ namespace RA2Lib.Helpers {
             data.Array[o + 2] = bytes[2];
             data.Array[o + 3] = bytes[3];
         }
-
     }
 }
+

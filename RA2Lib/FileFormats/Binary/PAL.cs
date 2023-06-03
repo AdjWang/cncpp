@@ -1,9 +1,10 @@
 ﻿using System;
-using System.Drawing;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.IO;
+
+using RA2Lib.XnaUtils;
 
 namespace RA2Lib.FileFormats.Binary {
     public class PAL : BinaryFileFormat {

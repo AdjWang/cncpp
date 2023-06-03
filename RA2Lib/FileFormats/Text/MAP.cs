@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.IO;
+
 using RA2Lib.Libraries;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
+using RA2Lib.XnaUtils;
 
 namespace RA2Lib.FileFormats.Text {
     public class MAP : INI {
@@ -125,12 +125,12 @@ namespace RA2Lib.FileFormats.Text {
             return LCW.Slurp(Un64);
         }
 
-        public Microsoft.Xna.Framework.Graphics.Texture2D GetPreviewTexture(Microsoft.Xna.Framework.Graphics.GraphicsDevice GraphicsDevice) {
-            var MapPreview = new Texture2D(GraphicsDevice, PreviewSize.Width, PreviewSize.Height, false, SurfaceFormat.Color);
+        // public Microsoft.Xna.Framework.Graphics.Texture2D GetPreviewTexture(Microsoft.Xna.Framework.Graphics.GraphicsDevice GraphicsDevice) {
+        //     var MapPreview = new Texture2D(GraphicsDevice, PreviewSize.Width, PreviewSize.Height, false, SurfaceFormat.Color);
 
-            MapPreview.SetData(Preview);
+        //     MapPreview.SetData(Preview);
 
-            return MapPreview;
-        }
+        //     return MapPreview;
+        // }
     }
 }

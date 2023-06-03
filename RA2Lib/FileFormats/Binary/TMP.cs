@@ -1,10 +1,12 @@
 ﻿using System;
-using System.Drawing;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.IO;
 using System.Diagnostics;
+
+using RA2Lib.XnaUtils;
+using Color = RA2Lib.XnaUtils.Color;
 
 namespace RA2Lib.FileFormats.Binary {
     public class TMP : BinaryFileFormat {
@@ -92,8 +94,8 @@ namespace RA2Lib.FileFormats.Binary {
                 Height = data.Array[offs + 40];
                 TerrainType = data.Array[offs + 41];
                 RampType = data.Array[offs + 42];
-                RadarLeftColor = new Color(data.Array[offs + 43], data.Array[offs + 44], data.Array[offs + 45], 1.0f);
-                RadarRightColor = new Color(data.Array[offs + 46], data.Array[offs + 47], data.Array[offs + 48], 1.0f);
+                RadarLeftColor = new Color(data.Array[offs + 43], data.Array[offs + 44], data.Array[offs + 45]);
+                RadarRightColor = new Color(data.Array[offs + 46], data.Array[offs + 47], data.Array[offs + 48]);
 
                 Bounds = new Rectangle(0, 0, TileWidth, TileHeight);
 

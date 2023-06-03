@@ -5,7 +5,6 @@ using System.Text;
 using RA2Lib.FileFormats.Binary;
 using System.IO;
 using RA2Lib.FileFormats.Text;
-using Microsoft.Xna.Framework;
 using System.Diagnostics;
 
 namespace RA2Lib {

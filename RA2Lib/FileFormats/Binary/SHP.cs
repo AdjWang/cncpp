@@ -1,11 +1,12 @@
 ﻿using System;
-using System.Drawing;
-using System.Numerics;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.IO;
 using System.Diagnostics;
+
+using RA2Lib.XnaUtils;
+using Color = RA2Lib.XnaUtils.Color;
 
 namespace RA2Lib.FileFormats.Binary {
     public class SHP : BinaryFileFormat {

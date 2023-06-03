@@ -1,11 +1,11 @@
 ﻿using System;
-using System.Drawing;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using RA2Lib.FileFormats.Binary;
 using System.Diagnostics;
 using RA2Lib.AbstractHierarchy;
+using RA2Lib.XnaUtils;
 
 namespace RA2Lib {
     public class CellStruct {

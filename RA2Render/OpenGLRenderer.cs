@@ -40,85 +40,10 @@ namespace RA2Render
         private Shader Shader;
         private Camera Camera;
         private VoxelModel Model;
+        private VoxelMesh TempMesh;
 
         private const int Width = 800;
         private const int Height = 600;
-
-        //Vertex shaders are run on each vertex.
-        private readonly string VertexShaderSource = @"
-        #version 330 core
-
-        uniform mat4 view;
-        uniform mat4 model;
-        uniform mat4 projection;
-        uniform mat4 transform; 
-
-        layout (location = 0) in vec3 aPosition;
-        layout (location = 1) in vec4 aColor;
-        layout (location = 2) in vec3 aNormal;
-
-        out vec3 Normal;
-        out vec3 FragPos;
-        out vec4 Color;
-
-        void main(void)
-        {
-            Normal = aNormal;
-            FragPos = vec3(view * model * vec4(aPosition, 1.0));       
-            Color = aColor;	
-            gl_Position = projection * view * model * transform * vec4(aPosition, 1.0);
-        }
-        ";
-
-        //Fragment shaders are run on each fragment/pixel of the geometry.
-        private readonly string FragmentShaderSource = @"
-        #version 330 core
-
-        struct Material {
-            float shininess;
-        }; 
-
-        struct Light {
-            //vec3 position;
-            vec3 direction;
-            vec3 color;
-            vec3 ambient;
-            vec3 diffuse;
-            vec3 specular;
-        };
-
-        in vec3 Normal;
-        in vec3 FragPos;
-        in vec4 Color;
-
-        uniform vec3 viewPos;
-        uniform Material material;
-        uniform Light light;
-
-        out vec4 FragColor;
-
-        void main()
-        {
-            // ambient
-            vec3 ambient = light.ambient * light.color;
-            
-            // diffuse 
-            vec3 norm = normalize(Normal);
-            // vec3 lightDir = normalize(light.position - FragPos);
-            vec3 lightDir = normalize(-light.direction);  
-            float diff = max(dot(norm, lightDir), 0.0);
-            vec3 diffuse = light.diffuse * diff * light.color;  
-            
-            // specular
-            vec3 viewDir = normalize(viewPos - FragPos);
-            vec3 reflectDir = reflect(-lightDir, norm);  
-            float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
-            vec3 specular = light.specular * spec * light.color;  
-                
-            vec3 result = (ambient + diffuse + specular) * Color;
-            FragColor = vec4(result, 1.0);
-        }
-        ";
 
         private void SetShaderUniforms()
         {
@@ -134,20 +59,21 @@ namespace RA2Render
             Shader.SetUniform("viewPos", Camera.Position);
             Shader.SetUniform("material.shininess", 32.0f);
             Shader.SetUniform("light.direction", new Vector3(-0.2f, -1.0f, -0.3f));
+
             Shader.SetUniform("light.color", new Vector3(1.0f, 1.0f, 1.0f));
-            Shader.SetUniform("light.ambient", new Vector3(0.2f, 0.2f, 0.2f));
-            Shader.SetUniform("light.diffuse", new Vector3(0.5f, 0.5f, 0.5f));
-            Shader.SetUniform("light.specular", new Vector3(1.0f, 1.0f, 1.0f));
+            Shader.SetUniform("light.ambient", 1.0f);
+            Shader.SetUniform("light.diffuse", 0.5f);
+            Shader.SetUniform("light.specular", 1.0f);
         }
 
         //Vertex data, uploaded to the VBO.
         private readonly float[] Vertices =
         {
             // position, color, normal
-             0.6f,  0.6f, 0.0f,   1.0f, 0.0f, 0.0f, 1.0f,   1.0f, 1.0f, 1.0f,
-             0.6f, -0.6f, 0.0f,   1.0f, 0.0f, 0.0f, 1.0f,   1.0f, 1.0f, 1.0f,
-            -0.6f, -0.6f, 0.0f,   1.0f, 0.0f, 0.0f, 1.0f,   1.0f, 1.0f, 1.0f,
-            -0.6f,  0.6f, 0.0f,   1.0f, 0.0f, 0.0f, 1.0f,   1.0f, 1.0f, 1.0f,
+             0.6f,  0.6f, 0.0f,   0.0f, 1.0f, 0.0f, 1.0f,   1.0f, 1.0f, 1.0f,
+             0.6f, -0.6f, 0.0f,   0.0f, 1.0f, 0.0f, 1.0f,   1.0f, 1.0f, 1.0f,
+            -0.6f, -0.6f, 0.0f,   0.0f, 1.0f, 0.0f, 1.0f,   1.0f, 1.0f, 1.0f,
+            -0.6f,  0.6f, 0.0f,   0.0f, 1.0f, 0.0f, 1.0f,   1.0f, 1.0f, 1.0f,
         };
         //Index data, uploaded to the EBO.
         private readonly uint[] Indices =
@@ -168,24 +94,29 @@ namespace RA2Render
             Gl = GL.GetApi(window);
             Debug.Assert(Gl != null);
 
-            // TODO: load vxl model
-            string name = "bfrt";
-            // string name = "bpln";
-            // string name = "disktur";
-            string vxlPath = $"D:\\practice\\RA2Resources\\{name}.vxl";
-            string hvaPath = $"D:\\practice\\RA2Resources\\{name}.hva";
+            TempMesh = new VoxelMesh(Gl, Vertices, Indices);
+            // load vxl model
+            // string name = "bfrt";
+            // // string name = "bpln";
+            // // string name = "disktur";
+            // string vxlPath = $"D:\\practice\\RA2Resources\\{name}.vxl";
+            // string hvaPath = $"D:\\practice\\RA2Resources\\{name}.hva";
+            string vxlPath = "F:\\Practice\\RA2\\test\\bfrt.vxl";
+            string hvaPath = "F:\\Practice\\RA2\\test\\bfrt.hva";
             Model = new VoxelModel(Gl, new string[] { vxlPath }, new string[] { hvaPath });
 
             //Start a camera at position 3 on the Z axis, looking at position -1 on the Z axis
             Camera = new Camera(Vector3.UnitZ * 6, Vector3.UnitZ * -1, Vector3.UnitY, Width / Height);
 
-            Shader = new Shader(Gl, VertexShaderSource, FragmentShaderSource, inline: true);
+            string vertShaderPath = "F:\\Practice\\cncpp\\RA2Render\\Model\\common_shader_vert.txt";
+            string fragShaderPath = "F:\\Practice\\cncpp\\RA2Render\\Model\\common_shader_frag.txt";
+            Shader = new Shader(Gl, vertShaderPath, fragShaderPath, inline: false);
         }
 
         private unsafe void OnRender(double obj) //Method needs to be unsafe due to draw elements.
         {
             Debug.Assert(Gl != null);
-            Gl.Enable(EnableCap.DepthTest);
+            // Gl.Enable(EnableCap.DepthTest);
             //Clear the color channel.
             Gl.Clear((uint)ClearBufferMask.ColorBufferBit);
 
@@ -201,6 +132,19 @@ namespace RA2Render
                 Shader.SetUniform("transform", transform);
 
                 Gl.DrawElements(PrimitiveType.Triangles, (uint)mesh.Indices.Length, DrawElementsType.UnsignedInt, null);
+            }
+
+            {
+                TempMesh.Bind();
+
+                Shader.Use();
+                SetShaderUniforms();
+                var difference = (float)(window.Time);
+                var transform = Matrix4x4.CreateRotationY(difference) *
+                                Matrix4x4.CreateRotationX(difference);
+                Shader.SetUniform("transform", transform);
+
+                Gl.DrawElements(PrimitiveType.Triangles, (uint)Indices.Length, DrawElementsType.UnsignedInt, null);
             }
         }
 

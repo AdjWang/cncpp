@@ -1,5 +1,6 @@
-using Silk.NET.OpenGL;
 using System;
+using System.Diagnostics;
+using Silk.NET.OpenGL;
 
 namespace RA2Render
 {
@@ -16,21 +17,25 @@ namespace RA2Render
             _bufferType = bufferType;
 
             _handle = _gl.GenBuffer();
+            _gl.CheckError();
             Bind();
             fixed (void* d = data)
             {
                 _gl.BufferData(bufferType, (nuint) (data.Length * sizeof(TDataType)), d, BufferUsageARB.StaticDraw);
+                _gl.CheckError();
             }
         }
 
         public void Bind()
         {
             _gl.BindBuffer(_bufferType, _handle);
+            _gl.CheckError();
         }
 
         public void Dispose()
         {
             _gl.DeleteBuffer(_handle);
+            _gl.CheckError();
         }
     }
 }
