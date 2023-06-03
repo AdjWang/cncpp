@@ -37,9 +37,9 @@ namespace RA2Render
         private IWindow window;
         private GL? Gl;
 
-        private uint Vbo;
-        private uint Ebo;
-        private uint Vao;
+        private static BufferObject<float> Vbo;
+        private static BufferObject<uint> Ebo;
+        private static VertexArrayObject<float, uint> Vao;
         private Shader Shader;
         private Camera Camera;
 
@@ -175,63 +175,42 @@ namespace RA2Render
             Gl = GL.GetApi(window);
             Debug.Assert(Gl != null);
 
-            //Creating a vertex array.
-            Vao = Gl.GenVertexArray();
-            Gl.BindVertexArray(Vao);
 
-            //Initializing a vertex buffer that holds the vertex data.
-            Vbo = Gl.GenBuffer(); //Creating the buffer.
-            Gl.BindBuffer(BufferTargetARB.ArrayBuffer, Vbo); //Binding the buffer.
-            fixed (void* v = &Vertices[0])
-            {
-                Gl.BufferData(BufferTargetARB.ArrayBuffer, (nuint)(Vertices.Length * sizeof(uint)), v, BufferUsageARB.StaticDraw); //Setting buffer data.
-            }
-
-            //Initializing a element buffer that holds the index data.
-            Ebo = Gl.GenBuffer(); //Creating the buffer.
-            Gl.BindBuffer(BufferTargetARB.ElementArrayBuffer, Ebo); //Binding the buffer.
-            fixed (void* i = &Indices[0])
-            {
-                Gl.BufferData(BufferTargetARB.ElementArrayBuffer, (nuint)(Indices.Length * sizeof(uint)), i, BufferUsageARB.StaticDraw); //Setting buffer data.
-            }
+            Ebo = new BufferObject<uint>(Gl, Indices, BufferTargetARB.ElementArrayBuffer);
+            Vbo = new BufferObject<float>(Gl, Vertices, BufferTargetARB.ArrayBuffer);
+            Vao = new VertexArrayObject<float, uint>(Gl, Vbo, Ebo);
+            //Tell opengl how to give the data to the shaders.
+            uint vertexLineSize = 10;
+            uint position = 0;
+            uint color = 1;
+            uint normal = 2;
+            Vao.VertexAttributePointer(position, /*count*/3, VertexAttribPointerType.Float, vertexLineSize, /*offset*/0);
+            Vao.VertexAttributePointer(color, /*count*/4, VertexAttribPointerType.Float, vertexLineSize, /*offset*/3);
+            Vao.VertexAttributePointer(normal, /*count*/3, VertexAttribPointerType.Float, vertexLineSize, /*offset*/7);
 
             //Start a camera at position 3 on the Z axis, looking at position -1 on the Z axis
             Camera = new Camera(Vector3.UnitZ * 6, Vector3.UnitZ * -1, Vector3.UnitY, Width / Height);
 
             Shader = new Shader(Gl, VertexShaderSource, FragmentShaderSource, inline: true);
-            Shader.Use();
-            SetShaderUniforms();
-
-            //Tell opengl how to give the data to the shaders.
-            uint vertexLineSize = 10;
-
-            uint position = 0;
-            Gl.VertexAttribPointer(position, 3, VertexAttribPointerType.Float, false, vertexLineSize * sizeof(float), (void*)0);
-            Gl.EnableVertexAttribArray(position);
-
-            uint color = 1;
-            Gl.VertexAttribPointer(color, 4, VertexAttribPointerType.Float, false, vertexLineSize * sizeof(float), (void*)12);
-            Gl.EnableVertexAttribArray(color);
-
-            uint normal = 2;
-            Gl.VertexAttribPointer(normal, 3, VertexAttribPointerType.Float, false, vertexLineSize * sizeof(float), (void*)28);
-            Gl.EnableVertexAttribArray(normal);
         }
 
         private unsafe void OnRender(double obj) //Method needs to be unsafe due to draw elements.
         {
             Debug.Assert(Gl != null);
+            Gl.Enable(EnableCap.DepthTest);
             //Clear the color channel.
             Gl.Clear((uint)ClearBufferMask.ColorBufferBit);
 
+            //Bind the geometry and shader.
+            Vao.Bind();
+
             Shader.Use();
+            SetShaderUniforms();
             var difference = (float)(window.Time);
             var transform = Matrix4x4.CreateRotationY(difference) *
                             Matrix4x4.CreateRotationX(difference);
             Shader.SetUniform("transform", transform);
 
-            //Bind the geometry and shader.
-            Gl.BindVertexArray(Vao);
             //Draw the geometry.
             Gl.DrawElements(PrimitiveType.Triangles, (uint)Indices.Length, DrawElementsType.UnsignedInt, null);
         }
@@ -240,13 +219,7 @@ namespace RA2Render
         { }
 
         private void OnClose()
-        {
-            Debug.Assert(Gl != null);
-            //Remember to delete the buffers.
-            Gl.DeleteBuffer(Vbo);
-            Gl.DeleteBuffer(Ebo);
-            Gl.DeleteVertexArray(Vao);
-        }
+        { }
 
         private void KeyDown(IKeyboard arg1, Key arg2, int arg3)
         {
