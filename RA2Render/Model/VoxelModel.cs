@@ -56,10 +56,10 @@ namespace RA2Render
                 vertices.Add(vertex.Position.X);
                 vertices.Add(vertex.Position.Y);
                 vertices.Add(vertex.Position.Z);
-                vertices.Add(vertex.Color.R);
-                vertices.Add(vertex.Color.G);
-                vertices.Add(vertex.Color.B);
-                vertices.Add(vertex.Color.A);
+                vertices.Add(vertex.Color.R / 255.0f);
+                vertices.Add(vertex.Color.G / 255.0f);
+                vertices.Add(vertex.Color.B / 255.0f);
+                vertices.Add(vertex.Color.A / 255.0f);
                 vertices.Add(vertex.Normal.X);
                 vertices.Add(vertex.Normal.Y);
                 vertices.Add(vertex.Normal.Z);

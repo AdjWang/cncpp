@@ -59,7 +59,6 @@ namespace RA2Render
             Shader.SetUniform("viewPos", Camera.Position);
             Shader.SetUniform("material.shininess", 32.0f);
             Shader.SetUniform("light.direction", new Vector3(-0.2f, -1.0f, -0.3f));
-
             Shader.SetUniform("light.color", new Vector3(1.0f, 1.0f, 1.0f));
             Shader.SetUniform("light.ambient", 1.0f);
             Shader.SetUniform("light.diffuse", 0.5f);
@@ -72,8 +71,8 @@ namespace RA2Render
             // position, color, normal
              0.6f,  0.6f, 0.0f,   0.0f, 1.0f, 0.0f, 1.0f,   1.0f, 1.0f, 1.0f,
              0.6f, -0.6f, 0.0f,   0.0f, 1.0f, 0.0f, 1.0f,   1.0f, 1.0f, 1.0f,
-            -0.6f, -0.6f, 0.0f,   0.0f, 1.0f, 0.0f, 1.0f,   1.0f, 1.0f, 1.0f,
             -0.6f,  0.6f, 0.0f,   0.0f, 1.0f, 0.0f, 1.0f,   1.0f, 1.0f, 1.0f,
+            -0.6f, -0.6f, 0.0f,   0.0f, 1.0f, 0.0f, 1.0f,   1.0f, 1.0f, 1.0f,
         };
         //Index data, uploaded to the EBO.
         private readonly uint[] Indices =
@@ -116,9 +115,9 @@ namespace RA2Render
         private unsafe void OnRender(double obj) //Method needs to be unsafe due to draw elements.
         {
             Debug.Assert(Gl != null);
-            // Gl.Enable(EnableCap.DepthTest);
+            Gl.Enable(EnableCap.DepthTest);
             //Clear the color channel.
-            Gl.Clear((uint)ClearBufferMask.ColorBufferBit);
+            Gl.Clear((uint)ClearBufferMask.ColorBufferBit | (uint)ClearBufferMask.DepthBufferBit);
 
             foreach (var mesh in Model.Meshes)
             {
@@ -127,7 +126,7 @@ namespace RA2Render
                 Shader.Use();
                 SetShaderUniforms();
                 var difference = (float)(window.Time);
-                var transform = Matrix4x4.CreateRotationY(difference) *
+                var transform = Matrix4x4.CreateRotationY(0.7f * difference) *
                                 Matrix4x4.CreateRotationX(difference);
                 Shader.SetUniform("transform", transform);
 
@@ -140,7 +139,7 @@ namespace RA2Render
                 Shader.Use();
                 SetShaderUniforms();
                 var difference = (float)(window.Time);
-                var transform = Matrix4x4.CreateRotationY(difference) *
+                var transform = Matrix4x4.CreateRotationY(0.7f * difference) *
                                 Matrix4x4.CreateRotationX(difference);
                 Shader.SetUniform("transform", transform);
 

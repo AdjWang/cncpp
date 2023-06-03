@@ -660,7 +660,9 @@ namespace RA2Lib.FileFormats.Binary {
 
             public Vector3 Normalize(Vector3 pos)
             {
-                return new(pos.X / SizeX, pos.Y / SizeY, pos.Z / SizeZ);
+                float factor = MathF.Max(SizeX, SizeY);
+                factor = MathF.Max(factor, SizeZ);
+                return new(pos.X / factor, pos.Y / factor, pos.Z / factor);
             }
 
             enum CornerTags {
