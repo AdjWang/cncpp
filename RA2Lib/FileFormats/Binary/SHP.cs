@@ -201,7 +201,8 @@ namespace RA2Lib.FileFormats.Binary {
             Palette = NewPalette;
         }
 
-        public void GetTexture(uint FrameIndex, ref Helpers.ZBufferedTexture resultTexture) {
+        // TODO: drop the inefficient for loop blit operation
+        public void GetTexture(uint FrameIndex, ref Helpers.ZBufferedTexture resultTexture, bool yflip=false) {
             if (Palette == null) {
                 throw new InvalidOperationException("Cannot create texture without a palette.");
             }
@@ -234,7 +235,12 @@ namespace RA2Lib.FileFormats.Binary {
                     } else {
                         c = Palette.Colors[ix];
                     }
-                    resultTexture.PutPixel(c, (int)frame.X + x, (int)frame.Y + y, 0);
+                    int texY = frame.Y + y;
+                    if (yflip)
+                    {
+                        texY = frame.Y + fh - 1 - y;
+                    }
+                    resultTexture.PutPixel(c, (int)frame.X + x, (int)texY, 0);
                 }
             }
         }

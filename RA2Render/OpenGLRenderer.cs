@@ -43,6 +43,7 @@ namespace RA2Render
         private Camera Camera = null!;
         private VoxelModel Model = null!;
         private VoxelMesh DemoPlaneMesh = null!;
+        private SHPTexture DemoSHP = null!;
 
         private const int Width = 800;
         private const int Height = 600;
@@ -79,8 +80,15 @@ namespace RA2Render
             Gl = GL.GetApi(window);
             Debug.Assert(Gl != null);
 
+            //Start a camera at position 3 on the Z axis, looking at position -1 on the Z axis
+            Vector3 cameraPosition = new(0.0f, 0.0f, -6.0f);
+            Vector3 cameraFront = new(0.0f, 0.0f, 1.0f);
+            Vector3 cameraUp = new(0.0f, 1.0f, 0.0f);
+            Camera = new Camera(cameraPosition, cameraFront, cameraUp, Width / Height);
+
             var ra2mdmix = RA2Lib.FileSystem.LoadMIX("F:\\Practice\\RA2\\RA2\\ra2md.mix");
             Debug.Assert(ra2mdmix != null);
+            RA2Lib.FileSystem.LoadMIX("conqmd.mix");
             RA2Lib.FileSystem.LoadMIX("localmd.mix");
 
             DemoPlaneMesh = new VoxelMesh(Gl, DemoPlane.Vertices,  DemoPlane.Indices);
@@ -91,15 +99,11 @@ namespace RA2Render
             string name = "robo";
             Model = new VoxelModel(Gl, new string[] { $"{name}.vxl" }, new string[] { $"{name}.hva" });
 
-            //Start a camera at position 3 on the Z axis, looking at position -1 on the Z axis
-            Vector3 cameraPosition = new(0.0f, 0.0f, -6.0f);
-            Vector3 cameraFront = new(0.0f, 0.0f, 1.0f);
-            Vector3 cameraUp = new(0.0f, 1.0f, 0.0f);
-            Camera = new Camera(cameraPosition, cameraFront, cameraUp, Width / Height);
-
             string vertShaderPath = "F:\\Practice\\cncpp\\RA2Render\\Model\\common_shader_vert.txt";
             string fragShaderPath = "F:\\Practice\\cncpp\\RA2Render\\Model\\common_shader_frag.txt";
             Shader = new Shader(Gl, vertShaderPath, fragShaderPath, inline: false);
+
+            DemoSHP = new SHPTexture(Gl, "brute.shp");
         }
 
         private unsafe void OnRender(double obj) //Method needs to be unsafe due to draw elements.
@@ -127,6 +131,11 @@ namespace RA2Render
             {
                 DemoPlaneMesh.Bind();
                 DemoPlaneMesh.Draw();
+            }
+
+            {
+                DemoSHP.Bind();
+                DemoSHP.Draw();
             }
         }
 
