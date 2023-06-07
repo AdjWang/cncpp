@@ -6,29 +6,23 @@ using System.Diagnostics;
 using System.Collections.Generic;
 using Silk.NET.OpenGL;
 
-namespace RA2Render
+namespace RA2Render.Model
 {
     public class VoxelMesh : IDisposable
     {
-        public VoxelMesh(GL gl, float[] vertices, uint[] indices)
-        {
-            GL = gl;
-            Vertices = vertices;
-            Indices = indices;
-            SetupMesh();
-        }
-
-        public float[] Vertices { get; private set; }
-        public uint[] Indices { get; private set; }
         public VertexArrayObject<float, uint> VAO { get; set; }
         public BufferObject<float> VBO { get; set; }
         public BufferObject<uint> EBO { get; set; }
         public GL GL { get; }
 
-        public unsafe void SetupMesh()
+        public VoxelMesh(GL gl, float[] vertices, uint[] indices)
         {
-            EBO = new BufferObject<uint>(GL, Indices, BufferTargetARB.ElementArrayBuffer);
-            VBO = new BufferObject<float>(GL, Vertices, BufferTargetARB.ArrayBuffer);
+            GL = gl;
+            Vertices = vertices;
+            Indices = indices;
+
+            EBO = new BufferObject<uint>(GL, indices, BufferTargetARB.ElementArrayBuffer);
+            VBO = new BufferObject<float>(GL, vertices, BufferTargetARB.ArrayBuffer);
             VAO = new VertexArrayObject<float, uint>(GL, VBO, EBO);
 
             uint vertexLineSize = 10;
@@ -40,9 +34,17 @@ namespace RA2Render
             VAO.VertexAttributePointer(normal, /*count*/3, VertexAttribPointerType.Float, vertexLineSize, /*offset*/7);
         }
 
+        private float[] Vertices { get; set; }
+        private uint[] Indices { get; set; }
+
         public void Bind()
         {
             VAO.Bind();
+        }
+
+        public unsafe void Draw()
+        {
+            GL.DrawElements(PrimitiveType.Triangles, (uint)Indices.Length, DrawElementsType.UnsignedInt, null);
         }
 
         public void Dispose()

@@ -5,6 +5,8 @@ using Silk.NET.OpenGL;
 using Silk.NET.Windowing;
 using Silk.NET.Maths;
 
+using RA2Render.Model;
+
 namespace RA2Render
 {
     class Renderer : IDisposable
@@ -35,12 +37,12 @@ namespace RA2Render
 
 
         private IWindow window;
-        private GL? Gl;
+        private GL Gl = null!;
 
-        private Shader Shader;
-        private Camera Camera;
-        private VoxelModel Model;
-        private VoxelMesh TempMesh;
+        private Shader Shader = null!;
+        private Camera Camera = null!;
+        private VoxelModel Model = null!;
+        private VoxelMesh DemoPlaneMesh = null!;
 
         private const int Width = 800;
         private const int Height = 600;
@@ -65,22 +67,6 @@ namespace RA2Render
             Shader.SetUniform("light.specular", 1.0f);
         }
 
-        //Vertex data, uploaded to the VBO.
-        private readonly float[] Vertices =
-        {
-            // position, color, normal
-             0.6f,  0.6f, 0.0f,   0.0f, 1.0f, 0.0f, 1.0f,   1.0f, 1.0f, 1.0f,
-             0.6f, -0.6f, 0.0f,   0.0f, 1.0f, 0.0f, 1.0f,   1.0f, 1.0f, 1.0f,
-            -0.6f,  0.6f, 0.0f,   0.0f, 1.0f, 0.0f, 1.0f,   1.0f, 1.0f, 1.0f,
-            -0.6f, -0.6f, 0.0f,   0.0f, 1.0f, 0.0f, 1.0f,   1.0f, 1.0f, 1.0f,
-        };
-        //Index data, uploaded to the EBO.
-        private readonly uint[] Indices =
-        {
-            0, 1, 3,
-            1, 2, 3
-        };
-
         private unsafe void OnLoad()
         {
             IInputContext input = window.CreateInput();
@@ -93,22 +79,26 @@ namespace RA2Render
             Gl = GL.GetApi(window);
             Debug.Assert(Gl != null);
 
-            var ra2mdmix = RA2Lib.FileSystem.LoadMIX("D:\\Games\\RA2\\RA2\\ra2md.mix");
+            var ra2mdmix = RA2Lib.FileSystem.LoadMIX("F:\\Practice\\RA2\\RA2\\ra2md.mix");
             Debug.Assert(ra2mdmix != null);
             RA2Lib.FileSystem.LoadMIX("localmd.mix");
 
-            TempMesh = new VoxelMesh(Gl, Vertices, Indices);
+            DemoPlaneMesh = new VoxelMesh(Gl, DemoPlane.Vertices,  DemoPlane.Indices);
             // load vxl model
             // string name = "bfrt";
             // string name = "bpln";
-            string name = "disktur";
+            // string name = "disktur";
+            string name = "robo";
             Model = new VoxelModel(Gl, new string[] { $"{name}.vxl" }, new string[] { $"{name}.hva" });
 
             //Start a camera at position 3 on the Z axis, looking at position -1 on the Z axis
-            Camera = new Camera(Vector3.UnitZ * 6, Vector3.UnitZ * -1, Vector3.UnitY * 1, Width / Height);
+            Vector3 cameraPosition = new(0.0f, 0.0f, -6.0f);
+            Vector3 cameraFront = new(0.0f, 0.0f, 1.0f);
+            Vector3 cameraUp = new(0.0f, 1.0f, 0.0f);
+            Camera = new Camera(cameraPosition, cameraFront, cameraUp, Width / Height);
 
-            string vertShaderPath = ".\\RA2Render\\Model\\common_shader_vert.txt";
-            string fragShaderPath = ".\\RA2Render\\Model\\common_shader_frag.txt";
+            string vertShaderPath = "F:\\Practice\\cncpp\\RA2Render\\Model\\common_shader_vert.txt";
+            string fragShaderPath = "F:\\Practice\\cncpp\\RA2Render\\Model\\common_shader_frag.txt";
             Shader = new Shader(Gl, vertShaderPath, fragShaderPath, inline: false);
         }
 
@@ -131,12 +121,12 @@ namespace RA2Render
             foreach (var mesh in Model.Meshes)
             {
                 mesh.Bind();
-                Gl.DrawElements(PrimitiveType.Triangles, (uint)mesh.Indices.Length, DrawElementsType.UnsignedInt, null);
+                mesh.Draw();
             }
 
             {
-                TempMesh.Bind();
-                Gl.DrawElements(PrimitiveType.Triangles, (uint)Indices.Length, DrawElementsType.UnsignedInt, null);
+                DemoPlaneMesh.Bind();
+                DemoPlaneMesh.Draw();
             }
         }
 

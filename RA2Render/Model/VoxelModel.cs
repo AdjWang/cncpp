@@ -8,7 +8,7 @@ using System.Linq;
 using System.Numerics;
 using Silk.NET.OpenGL;
 
-namespace RA2Render
+namespace RA2Render.Model
 {
     public class VoxelModel : IDisposable
     {
