@@ -14,6 +14,8 @@ namespace RA2Render
         public Renderer()
         {
             var options = WindowOptions.Default;
+            options.API = new(ContextAPI.OpenGL, new(3, 3));
+            options.PreferredDepthBufferBits = 8;
             options.Size = new Vector2D<int>(Width, Height);
             options.Title = "RA2OpenGLRenderer";
             window = Window.Create(options);
@@ -86,9 +88,12 @@ namespace RA2Render
             Vector3 cameraUp = new(0.0f, 1.0f, 0.0f);
             Camera = new Camera(cameraPosition, cameraFront, cameraUp, Width / Height);
 
-            var ra2mdmix = RA2Lib.FileSystem.LoadMIX("F:\\Practice\\RA2\\RA2\\ra2md.mix");
+            var ra2mix = RA2Lib.FileSystem.LoadMIX("D:\\Practice\\RA2\\ra2.mix");
+            Debug.Assert(ra2mix != null);
+            var ra2mdmix = RA2Lib.FileSystem.LoadMIX("D:\\Practice\\RA2\\ra2md.mix");
             Debug.Assert(ra2mdmix != null);
             RA2Lib.FileSystem.LoadMIX("conqmd.mix");
+            RA2Lib.FileSystem.LoadMIX("local.mix");
             RA2Lib.FileSystem.LoadMIX("localmd.mix");
 
             DemoPlaneMesh = new VoxelMesh(Gl, DemoPlane.Vertices,  DemoPlane.Indices);
@@ -96,11 +101,12 @@ namespace RA2Render
             // string name = "bfrt";
             // string name = "bpln";
             // string name = "disktur";
-            string name = "robo";
+            string name = "shad";
+            // string name = "htnk";
             Model = new VoxelModel(Gl, new string[] { $"{name}.vxl" }, new string[] { $"{name}.hva" });
 
-            string vertShaderPath = "F:\\Practice\\cncpp\\RA2Render\\Model\\common_shader_vert.txt";
-            string fragShaderPath = "F:\\Practice\\cncpp\\RA2Render\\Model\\common_shader_frag.txt";
+            string vertShaderPath = "D:\\Practice\\cncpp\\RA2Render\\Model\\common_shader_vert.txt";
+            string fragShaderPath = "D:\\Practice\\cncpp\\RA2Render\\Model\\common_shader_frag.txt";
             Shader = new Shader(Gl, vertShaderPath, fragShaderPath, inline: false);
 
             DemoSHP = new SHPTexture(Gl, "brute.shp");

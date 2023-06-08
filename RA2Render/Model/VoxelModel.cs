@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using Serilog;
 using Silk.NET.OpenGL;
 
 namespace RA2Render.Model
@@ -30,6 +31,7 @@ namespace RA2Render.Model
         private unsafe void LoadModel(string vxlPath, string hvaPath)
         {
             var vxl = RA2Lib.FileFormats.Binary.VoxLib.Create(vxlPath, hvaPath);
+            Debug.Assert(vxl.Voxel.Sections.Count > 0);
             // TODO: more frames?
             Meshes.Add(ProcessMesh(vxl));
         }
@@ -49,8 +51,9 @@ namespace RA2Render.Model
 
         private float[] BuildVertices(List<RA2Lib.FileFormats.Binary.VXL.VertexPositionColorNormal> vertexCollection)
         {
-            var vertices = new List<float>();
+            Log.Information($"vertices count: {vertexCollection.Count}");
 
+            var vertices = new List<float>();
             foreach (var vertex in vertexCollection)
             {
                 vertices.Add(vertex.Position.X);
@@ -64,7 +67,6 @@ namespace RA2Render.Model
                 vertices.Add(vertex.Normal.Y);
                 vertices.Add(vertex.Normal.Z);
             }
-
             return vertices.ToArray();
         }
 
