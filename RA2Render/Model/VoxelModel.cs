@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.IO;
 using System.Diagnostics;
 using System.Collections.Generic;
 using System.Linq;
@@ -32,17 +33,22 @@ namespace RA2Render.Model
         {
             var vxl = RA2Lib.FileFormats.Binary.VoxLib.Create(vxlPath, hvaPath);
             Debug.Assert(vxl.Voxel.Sections.Count > 0);
-            // TODO: more frames?
-            Meshes.Add(ProcessMesh(vxl));
+
+            Log.Information($@"Model: {Path.GetFileName(vxlPath)}, Sections count: {vxl.Voxel.Sections.Count}, Frame count: {vxl.MotLib.Header.FrameCount}");
+
+            for(int i = 0; i < vxl.MotLib.Header.FrameCount; i++)
+            {
+                Meshes.Add(ProcessMesh(vxl, i));
+            }
         }
 
-        private unsafe VoxelMesh ProcessMesh(RA2Lib.FileFormats.Binary.VoxLib voxel)
+        private unsafe VoxelMesh ProcessMesh(RA2Lib.FileFormats.Binary.VoxLib voxel, int frame)
         {
             // data to fill
             var vertices = new List<RA2Lib.FileFormats.Binary.VXL.VertexPositionColorNormal>();
             var indices = new List<uint>();
 
-            voxel.Voxel.GetVertices(/*FrameIdx*/0, /*out*/vertices, /*out*/indices);
+            voxel.Voxel.GetVertices(frame, /*out*/vertices, /*out*/indices);
 
             // return a mesh object created from the extracted mesh data
             var result = new VoxelMesh(_gl, BuildVertices(vertices), BuildIndices(indices));
@@ -51,8 +57,6 @@ namespace RA2Render.Model
 
         private float[] BuildVertices(List<RA2Lib.FileFormats.Binary.VXL.VertexPositionColorNormal> vertexCollection)
         {
-            Log.Information($"vertices count: {vertexCollection.Count}");
-
             var vertices = new List<float>();
             foreach (var vertex in vertexCollection)
             {

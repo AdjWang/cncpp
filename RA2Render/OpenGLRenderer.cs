@@ -88,6 +88,7 @@ namespace RA2Render
             Vector3 cameraUp = new(0.0f, 1.0f, 0.0f);
             Camera = new Camera(cameraPosition, cameraFront, cameraUp, Width / Height);
 
+            // Load RA2 files
             var ra2mix = RA2Lib.FileSystem.LoadMIX("D:\\Practice\\RA2\\ra2.mix");
             Debug.Assert(ra2mix != null);
             var ra2mdmix = RA2Lib.FileSystem.LoadMIX("D:\\Practice\\RA2\\ra2md.mix");
@@ -95,8 +96,11 @@ namespace RA2Render
             RA2Lib.FileSystem.LoadMIX("conqmd.mix");
             RA2Lib.FileSystem.LoadMIX("local.mix");
             RA2Lib.FileSystem.LoadMIX("localmd.mix");
+            var rules = RA2Lib.FileSystem.LoadFile("RULESMD.INI");
+            Debug.Assert(rules != null);
+            RA2Lib.FileFormats.Text.INI.Rules_INI = new RA2Lib.FileFormats.Text.INI(rules);
 
-            DemoPlaneMesh = new VoxelMesh(Gl, DemoPlane.Vertices,  DemoPlane.Indices);
+            DemoPlaneMesh = new VoxelMesh(Gl, DemoPlane.Vertices, DemoPlane.Indices);
             // load vxl model
             // string name = "bfrt";
             // string name = "bpln";
@@ -110,6 +114,7 @@ namespace RA2Render
             Shader = new Shader(Gl, vertShaderPath, fragShaderPath, inline: false);
 
             DemoSHP = new SHPTexture(Gl, "brute.shp");
+
         }
 
         private unsafe void OnRender(double obj) //Method needs to be unsafe due to draw elements.
@@ -134,13 +139,12 @@ namespace RA2Render
                 mesh.Draw();
             }
 
-            {
-                DemoPlaneMesh.Bind();
-                DemoPlaneMesh.Draw();
-            }
+            // {
+            //     DemoPlaneMesh.Bind();
+            //     DemoPlaneMesh.Draw();
+            // }
 
             {
-                DemoSHP.Bind();
                 DemoSHP.Draw();
             }
         }

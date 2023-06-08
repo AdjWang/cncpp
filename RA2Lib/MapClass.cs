@@ -243,41 +243,39 @@ namespace RA2Lib {
 
         internal List<CellClass> VisibleCells = new List<CellClass>();
 
-        // public Texture2D GetTexture(GraphicsDevice gd) {
-        //     var Tactical = TacticalClass.Instance;
+        public void GetTexture(ref Helpers.ZBufferedTexture TileTexture) {
+            var Tactical = TacticalClass.Instance;
 
-        //     var Reusable = Rectangle.Intersect(LastScreenArea, Tactical.ScreenArea);
+            var Reusable = Rectangle.Intersect(LastScreenArea, Tactical.ScreenArea);
 
-        //     var shiftX = LastScreenArea.X - Tactical.ScreenArea.X;
-        //     var shiftY = LastScreenArea.Y - Tactical.ScreenArea.Y;
+            var shiftX = LastScreenArea.X - Tactical.ScreenArea.X;
+            var shiftY = LastScreenArea.Y - Tactical.ScreenArea.Y;
 
-        //     if (TileTexture == null) {
-        //         TileTexture = new Helpers.ZBufferedTexture(Tactical.Width, Tactical.Height);
-        //     } else {
-        //         TileTexture.Clear();
-        //     }
+            if (TileTexture == null) {
+                TileTexture = new Helpers.ZBufferedTexture(Tactical.Width, Tactical.Height);
+            } else {
+                TileTexture.Clear();
+            }
 
-        //     //if (LastTextureData != null) {
-        //     //    //TileTexture.CopyBlockFrom(LastTextureData, shiftX, shiftY);
-        //     //}
+            //if (LastTextureData != null) {
+            //    //TileTexture.CopyBlockFrom(LastTextureData, shiftX, shiftY);
+            //}
 
-        //     VisibleCells.Clear();
+            VisibleCells.Clear();
 
-        //     foreach(var c in cellIter.Range()) {
-        //         Tactical.UpdateCellPosition(c);
-        //         if (c.VisibleInTactical) {
-        //             VisibleCells.Add(c);
-        //         }
-        //     }
+            foreach(var c in cellIter.Range()) {
+                Tactical.UpdateCellPosition(c);
+                if (c.VisibleInTactical) {
+                    VisibleCells.Add(c);
+                }
+            }
 
-        //     foreach (var c in VisibleCells) {
-        //         c.Draw(TileTexture);
-        //     }
+            foreach (var c in VisibleCells) {
+                c.Draw(TileTexture);
+            }
 
-        //     LastScreenArea = Tactical.ScreenArea;
-
-        //     return TileTexture.Compile(gd);
-        // }
+            LastScreenArea = Tactical.ScreenArea;
+        }
 
         internal CellClass GetCellAt(CellStruct xy) {
             if (xy.X < 0 || xy.X > 511 || xy.Y < 0 || xy.Y > 511) {
