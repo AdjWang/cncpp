@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System.IO;
+using System.Numerics;
 using System.Diagnostics;
 using Silk.NET.Input;
 using Silk.NET.OpenGL;
@@ -78,6 +79,10 @@ namespace RA2Render
 
         private unsafe void OnLoad()
         {
+            string GameDir = "D:\\Games\\RA2\\RA2";
+            string ProjectDir = "D:\\temp\\RA2Render\\cncpp";
+            string ResourceDir = "D:\\temp\\RA2Render\\RA2Resources";
+
             IInputContext input = window.CreateInput();
             for (int i = 0; i < input.Keyboards.Count; i++)
             {
@@ -96,9 +101,9 @@ namespace RA2Render
             Camera = new Camera(cameraPosition, cameraFront, cameraUp, Width / Height);
 
             // Load RA2 files
-            var ra2mix = RA2Lib.FileSystem.LoadMIX("D:\\Practice\\RA2\\ra2.mix");
+            var ra2mix = RA2Lib.FileSystem.LoadMIX(Path.Combine(GameDir, "ra2.mix"));
             Debug.Assert(ra2mix != null);
-            var ra2mdmix = RA2Lib.FileSystem.LoadMIX("D:\\Practice\\RA2\\ra2md.mix");
+            var ra2mdmix = RA2Lib.FileSystem.LoadMIX(Path.Combine(GameDir, "ra2md.mix"));
             Debug.Assert(ra2mdmix != null);
             RA2Lib.FileSystem.LoadMIX("local.mix");
             RA2Lib.FileSystem.LoadMIX("cache.mix");
@@ -123,13 +128,13 @@ namespace RA2Render
             // string name = "htnk";
             Model = new VoxelModel(Gl, new string[] { $"{name}.vxl" }, new string[] { $"{name}.hva" });
 
-            string vertShaderPath = "D:\\Practice\\cncpp\\RA2Render\\Model\\common_shader_vert.txt";
-            string fragShaderPath = "D:\\Practice\\cncpp\\RA2Render\\Model\\common_shader_frag.txt";
+            string vertShaderPath = Path.Combine(ProjectDir, "RA2Render\\Model\\common_shader_vert.txt");
+            string fragShaderPath = Path.Combine(ProjectDir, "RA2Render\\Model\\common_shader_frag.txt");
             Shader = new Shader(Gl, vertShaderPath, fragShaderPath, inline: false);
 
             DemoSHP = new SHPTexture(Gl, "brute.shp");
 
-            string mapfile = "D:\\practice\\RA2Resources\\2peaks.map";
+            string mapfile = Path.Combine(ResourceDir, "2peaks.map");
             Map = new TileMap(Gl, mapfile);
             _mapMoveAmount = new(0, 0);
         }
@@ -169,14 +174,8 @@ namespace RA2Render
             }
         }
 
-        private int counter = 0;
         private void OnUpdate(double obj)
         {
-            int mapMovePeriod = 10;
-            counter = (counter + 1) % mapMovePeriod;
-            if (counter == 0)
-            {
-            }
             Map.Move(_mapMoveAmount);
         }
 
