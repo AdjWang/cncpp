@@ -4,9 +4,21 @@ using Silk.NET.OpenGL;
 
 namespace RA2Render
 {
-    public class Texture : IDisposable
+    public class Texture2D : IDisposable
     {
-        public Texture(GL gl, RA2Lib.Helpers.ZBufferedTexture texture)
+        public Texture2D(GL gl, uint Width, uint Height, RA2Lib.XnaUtils.Color[] pixels)
+        {
+            _gl = gl;
+            InitBuffer();
+            _gl.CheckError();
+            InitShader();
+            _gl.CheckError();
+            InitAttributes();
+            _gl.CheckError();
+            LoadTexture(Width, Height, RA2Lib.Helpers.ZBufferedTexture.GetPixelData(pixels));
+            _gl.CheckError();
+        }
+        public Texture2D(GL gl, RA2Lib.Helpers.ZBufferedTexture texture)
         {
             _gl = gl;
             InitBuffer();
@@ -36,13 +48,14 @@ namespace RA2Render
             // You may have noticed an addition - texture coordinates!
             // Texture coordinates are a value between 0-1 (see more later about this) which tell the GPU which part
             // of the texture to use for each vertex.
+            float scale = 1.0f;
             float[] vertices =
             {
               // aPosition--------   aTexCoords
-                 0.5f,  0.5f, 0.0f,  1.0f, 1.0f,
-                 0.5f, -0.5f, 0.0f,  1.0f, 0.0f,
-                -0.5f, -0.5f, 0.0f,  0.0f, 0.0f,
-                -0.5f,  0.5f, 0.0f,  0.0f, 1.0f
+                 scale,  scale, 0.0f,  1.0f, 1.0f,
+                 scale, -scale, 0.0f,  1.0f, 0.0f,
+                -scale, -scale, 0.0f,  0.0f, 0.0f,
+                -scale,  scale, 0.0f,  0.0f, 1.0f
             };
 
             // Create the VBO.
@@ -185,6 +198,11 @@ namespace RA2Render
 
         private unsafe void LoadTexture(RA2Lib.Helpers.ZBufferedTexture texture)
         {
+            LoadTexture((uint)texture.Width, (uint)texture.Height, texture.GetPixelData());
+        }
+
+        private unsafe void LoadTexture(uint Width, uint Height, byte[] Data)
+        {
             // Now we create our texture!
             // First, we create the texture itself. Then, we must set an active texture unit. Each texture unit is a
             // separate bindable texture that we can use in a shader. GPUs have a maximum number of texture units they
@@ -198,7 +216,7 @@ namespace RA2Render
             // This will load and decompress the result into a raw byte array that we can pass directly into OpenGL.
             // ImageResult result = ImageResult.FromMemory(File.ReadAllBytes("silk.png"), ColorComponents.RedGreenBlueAlpha);
 
-            fixed (byte* ptr = texture.GetPixelData())
+            fixed (byte* ptr = Data)
             {
                 // Upload our texture data to the GPU.
                 // Let's go over each parameter used here:
@@ -214,8 +232,8 @@ namespace RA2Render
                 // 8. StbImageSharp returns this data as a byte[] array, therefore we must tell OpenGL we are uploading
                 //    data in the unsigned byte format.
                 // 9. The actual pointer to our data!
-                _gl.TexImage2D(TextureTarget.Texture2D, 0, InternalFormat.Rgba, (uint)texture.Width,
-                    (uint)texture.Height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, ptr);
+                _gl.TexImage2D(TextureTarget.Texture2D, 0, InternalFormat.Rgba, (uint)Width,
+                    (uint)Height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, ptr);
             }
 
             // Let's set some texture parameters!
@@ -297,6 +315,10 @@ namespace RA2Render
             _gl.DeleteVertexArray(_vbo);
             _gl.CheckError();
             _gl.DeleteVertexArray(_ebo);
+            _gl.CheckError();
+            _gl.DeleteTexture(_texture);
+            _gl.CheckError();
+            _gl.DeleteProgram(_program);
             _gl.CheckError();
         }
     }

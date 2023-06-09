@@ -4,6 +4,9 @@ using Silk.NET.OpenGL;
 using RA2Lib;
 using RA2Lib.AbstractHierarchy;
 using RA2Lib.FileFormats.Text;
+using Rectangle = RA2Lib.XnaUtils.Rectangle;
+using Color = RA2Lib.XnaUtils.Color;
+using Silk.NET.Maths;
 
 namespace RA2Render.Texture
 {
@@ -13,19 +16,15 @@ namespace RA2Render.Texture
         {
             _gl = gl;
 
-            MapClass Map = new MapClass(map);
+            Map = new MapClass(map);
 
-            //if (Map.Preview != null) {
-            //    MapPreview = Map.GetPreviewTexture(GraphicsDevice);
-            //} else {
-            //    MapPreview = null;
-            //}
+            (Rectangle previewSize, Color[] previewData) = Map.MapFile.GetPreviewTextureData();
+            _previewTexture = new(_gl, (uint)previewSize.Width, (uint)previewSize.Height, previewData);
 
             Map.Initialize();
 
-            TacticalClass Tactical;
             // TODO: 800, 600
-            Tactical = TacticalClass.Create(800, 600);
+            Tactical = TacticalClass.Create(1920, 1080);
             Tactical.SetMap(Map);
 
             INI.Rules_Combined = new INI();
@@ -45,17 +44,15 @@ namespace RA2Render.Texture
 
             Map.SetupOverlays();
 
-            Map.GetTexture(_texture);
-            Debug.Assert(_texture != null);
+            UpdateTexture();
         }
-
-        private readonly GL _gl;
-        private Texture _texture;
 
         public void Draw()
         {
             _texture.Bind();
             _texture.Draw();
+            // _previewTexture.Bind();
+            // _previewTexture.Draw();
         }
 
         public void Dispose()
@@ -63,10 +60,46 @@ namespace RA2Render.Texture
             _texture.Dispose();
         }
 
-        private void LoadMap(string mapfile)
+        public void Move(Vector2D<int> amount)
         {
-            // // String file = "D:\\practice\\RA2Resources\\2peaks.map";
-            // String file = "D:\\practice\\RA2Resources\\deathll.yrm";
+            int amountLeftRight = amount.X;
+            int amountUpDown = amount.Y;
+            bool mapMoved = false;
+
+            if (amountLeftRight != 0)
+            {
+                TacticalClass.NudgeStatus moveStatus = Tactical.NudgeX(amountLeftRight);
+                mapMoved |= moveStatus != TacticalClass.NudgeStatus.E_EDGE;
+            }
+            if (amountUpDown != 0)
+            {
+                TacticalClass.NudgeStatus moveStatus = Tactical.NudgeY(amountUpDown);
+                mapMoved |= moveStatus != TacticalClass.NudgeStatus.E_EDGE;
+            }
+
+            if (mapMoved)
+            {
+                UpdateTexture();
+            }
+        }
+
+        private readonly GL _gl;
+        private Texture2D _texture;
+        private Texture2D _previewTexture;
+        private MapClass Map;
+        private TacticalClass Tactical;
+
+        private RA2Lib.Helpers.ZBufferedTexture? _mapTexture = null;
+
+        private void UpdateTexture()
+        {
+            Map.GetTexture(ref _mapTexture);
+            Debug.Assert(_mapTexture != null);
+            if (_texture != null)
+            {
+                _texture.Dispose();
+            }
+            _texture = new(_gl, _mapTexture);
         }
     }
 }

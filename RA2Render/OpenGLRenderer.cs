@@ -6,6 +6,7 @@ using Silk.NET.Windowing;
 using Silk.NET.Maths;
 
 using RA2Render.Model;
+using RA2Render.Texture;
 
 namespace RA2Render
 {
@@ -18,6 +19,7 @@ namespace RA2Render
             options.PreferredDepthBufferBits = 8;
             options.Size = new Vector2D<int>(Width, Height);
             options.Title = "RA2OpenGLRenderer";
+
             window = Window.Create(options);
             Debug.Assert(window != null);
 
@@ -25,6 +27,7 @@ namespace RA2Render
             window.Render += OnRender;
             window.Update += OnUpdate;
             window.Closing += OnClose;
+            window.Resize += OnResize;
         }
 
         public void Run()
@@ -46,6 +49,9 @@ namespace RA2Render
         private VoxelModel Model = null!;
         private VoxelMesh DemoPlaneMesh = null!;
         private SHPTexture DemoSHP = null!;
+        private TileMap Map = null!;
+        private Vector2D<int> _mapMoveAmount;
+        private int _mapMoveSpeed = 300;
 
         private const int Width = 800;
         private const int Height = 600;
@@ -76,6 +82,7 @@ namespace RA2Render
             for (int i = 0; i < input.Keyboards.Count; i++)
             {
                 input.Keyboards[i].KeyDown += KeyDown;
+                input.Keyboards[i].KeyUp += KeyUp;
             }
 
             //Getting the opengl api for drawing to the screen.
@@ -93,12 +100,19 @@ namespace RA2Render
             Debug.Assert(ra2mix != null);
             var ra2mdmix = RA2Lib.FileSystem.LoadMIX("D:\\Practice\\RA2\\ra2md.mix");
             Debug.Assert(ra2mdmix != null);
-            RA2Lib.FileSystem.LoadMIX("conqmd.mix");
             RA2Lib.FileSystem.LoadMIX("local.mix");
+            RA2Lib.FileSystem.LoadMIX("cache.mix");
             RA2Lib.FileSystem.LoadMIX("localmd.mix");
+            RA2Lib.FileSystem.LoadMIX("cachemd.mix");
+            RA2Lib.FileSystem.LoadMIX("conqmd.mix");
+
             var rules = RA2Lib.FileSystem.LoadFile("RULESMD.INI");
             Debug.Assert(rules != null);
             RA2Lib.FileFormats.Text.INI.Rules_INI = new RA2Lib.FileFormats.Text.INI(rules);
+
+            var art = RA2Lib.FileSystem.LoadFile("ARTMD.INI");
+            Debug.Assert(art != null);
+            RA2Lib.FileFormats.Text.INI.Art_INI = new RA2Lib.FileFormats.Text.INI(art);
 
             DemoPlaneMesh = new VoxelMesh(Gl, DemoPlane.Vertices, DemoPlane.Indices);
             // load vxl model
@@ -115,6 +129,9 @@ namespace RA2Render
 
             DemoSHP = new SHPTexture(Gl, "brute.shp");
 
+            string mapfile = "D:\\practice\\RA2Resources\\2peaks.map";
+            Map = new TileMap(Gl, mapfile);
+            _mapMoveAmount = new(0, 0);
         }
 
         private unsafe void OnRender(double obj) //Method needs to be unsafe due to draw elements.
@@ -144,22 +161,74 @@ namespace RA2Render
             //     DemoPlaneMesh.Draw();
             // }
 
+            // {
+            //     DemoSHP.Draw();
+            // }
             {
-                DemoSHP.Draw();
+                Map.Draw();
             }
         }
 
+        private int counter = 0;
         private void OnUpdate(double obj)
-        { }
+        {
+            int mapMovePeriod = 10;
+            counter = (counter + 1) % mapMovePeriod;
+            if (counter == 0)
+            {
+            }
+            Map.Move(_mapMoveAmount);
+        }
 
         private void OnClose()
         { }
+
+        private void OnResize(Vector2D<int> size)
+        {
+            Gl.Viewport(0, 0, (uint) size.X, (uint) size.Y);
+        }
 
         private void KeyDown(IKeyboard arg1, Key arg2, int arg3)
         {
             if (arg2 == Key.Escape)
             {
                 window.Close();
+            }
+            else if (arg2 == Key.W)
+            {
+                _mapMoveAmount.Y += _mapMoveSpeed;
+            }
+            else if (arg2 == Key.A)
+            {
+                _mapMoveAmount.X += -_mapMoveSpeed;
+            }
+            else if (arg2 == Key.S)
+            {
+                _mapMoveAmount.Y += -_mapMoveSpeed;
+            }
+            else if (arg2 == Key.D)
+            {
+                _mapMoveAmount.X += _mapMoveSpeed;
+            }
+        }
+
+        private void KeyUp(IKeyboard arg1, Key arg2, int arg3)
+        {
+            if (arg2 == Key.W)
+            {
+                _mapMoveAmount.Y += -_mapMoveSpeed;
+            }
+            else if (arg2 == Key.A)
+            {
+                _mapMoveAmount.X += _mapMoveSpeed;
+            }
+            else if (arg2 == Key.S)
+            {
+                _mapMoveAmount.Y += _mapMoveSpeed;
+            }
+            else if (arg2 == Key.D)
+            {
+                _mapMoveAmount.X += -_mapMoveSpeed;
             }
         }
     }

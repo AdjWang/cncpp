@@ -26,12 +26,12 @@ namespace RA2Render
                 _SHPTextures.Add(texture);
             }
 
-            _texture = new Texture(_gl, _SHPTextures[0]);
+            _texture = new Texture2D(_gl, _SHPTextures[0]);
         }
 
         private readonly GL _gl;
         private List<RA2Lib.Helpers.ZBufferedTexture> _SHPTextures;
-        private Texture _texture;
+        private Texture2D _texture;
 
         public void Draw()
         {

@@ -34,14 +34,6 @@ namespace RA2Lib.Helpers
             ZIndices = new int[Width * Height];
         }
 
-        ~ZBufferedTexture()
-        {
-            // if (_Texture != null) {
-            //     _Texture.Dispose();
-            //     _Texture = null;
-            // }
-        }
-
         internal PixelPlacementStatus PutPixel(Color clr, int X, int Y, int Z)
         {
 
@@ -99,16 +91,20 @@ namespace RA2Lib.Helpers
         //     tex.SetData(Pixels);
         // }
 
-        public byte[] GetPixelData()
+        public static byte[] GetPixelData(Color[] pixels)
         {
             List<byte> data = new();
-            foreach(Color pix in Pixels){
+            foreach(Color pix in pixels){
                 data.Add(pix.R);
                 data.Add(pix.G);
                 data.Add(pix.B);
                 data.Add(pix.A);
             }
             return data.ToArray();
+        }
+        public byte[] GetPixelData()
+        {
+            return GetPixelData(Pixels);
         }
 
         internal bool CopyBlockFrom(ZBufferedTexture tex, int shiftX, int shiftY, int shiftZ = 0, bool CopyTransparent = true)

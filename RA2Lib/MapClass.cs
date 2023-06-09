@@ -20,7 +20,7 @@ namespace RA2Lib {
 
         public CellClass[] Cells = new CellClass[512 * 512];
 
-        // protected List<Helpers.ZBufferedTexture> LayerTextures = new List<Helpers.ZBufferedTexture>();
+        protected List<Helpers.ZBufferedTexture> LayerTextures = new List<Helpers.ZBufferedTexture>();
 
         public class CellIterator {
             int NextX;
@@ -243,7 +243,7 @@ namespace RA2Lib {
 
         internal List<CellClass> VisibleCells = new List<CellClass>();
 
-        public void GetTexture(ref Helpers.ZBufferedTexture TileTexture) {
+        public void GetTexture(ref Helpers.ZBufferedTexture? TileTexture) {
             var Tactical = TacticalClass.Instance;
 
             var Reusable = Rectangle.Intersect(LastScreenArea, Tactical.ScreenArea);
@@ -285,30 +285,30 @@ namespace RA2Lib {
             return Cells[idxCell];
         }
 
-        // public IEnumerable<Texture2D> GetLayerTextures(GraphicsDevice gd) {
-        //     var Tactical = TacticalClass.Instance;
+        public Helpers.ZBufferedTexture[] GetLayerTextures() {
+            var Tactical = TacticalClass.Instance;
 
-        //     Helpers.ZBufferedTexture T;
+            Helpers.ZBufferedTexture T;
 
-        //     if (LayerTextures.Count == 0) {
-        //         T = new Helpers.ZBufferedTexture(Tactical.Width, Tactical.Height);
-        //         LayerTextures.Add(T);
-        //     } else {
-        //         T = LayerTextures[0];
-        //     }
+            if (LayerTextures.Count == 0) {
+                T = new Helpers.ZBufferedTexture(Tactical.Width, Tactical.Height);
+                LayerTextures.Add(T);
+            } else {
+                T = LayerTextures[0];
+            }
 
-        //     T.Clear();
-        //     foreach (var c in VisibleCells) {
-        //         c.DrawOverlays(T);
-        //     }
+            T.Clear();
+            foreach (var c in VisibleCells) {
+                c.DrawOverlays(T);
+            }
 
-        //     foreach (var c in VisibleCells) {
-        //         for (var obj = c.FirstObject.Value; obj != null; obj = obj.NextObject.Value) {
-        //             obj.Draw(T);
-        //         }
-        //     }
+            foreach (var c in VisibleCells) {
+                for (var obj = c.FirstObject.Value; obj != null; obj = obj.NextObject.Value) {
+                    obj.Draw(T);
+                }
+            }
 
-        //     return LayerTextures.Select(TX => TX.Compile(gd));
-        // }
+            return LayerTextures.ToArray();
+        }
     }
 }
