@@ -79,9 +79,12 @@ namespace RA2Render
 
         private unsafe void OnLoad()
         {
-            string GameDir = "D:\\Games\\RA2\\RA2";
-            string ProjectDir = "D:\\temp\\RA2Render\\cncpp";
-            string ResourceDir = "D:\\temp\\RA2Render\\RA2Resources";
+            // string GameDir = "D:\\Games\\RA2\\RA2";
+            // string ProjectDir = "D:\\temp\\RA2Render\\cncpp";
+            // string ResourceDir = "D:\\temp\\RA2Render\\RA2Resources";
+            string GameDir = "D:\\Practice\\RA2";
+            string ProjectDir = "D:\\Practice\\cncpp";
+            string ResourceDir = "D:\\Practice\\RA2Resources";
 
             IInputContext input = window.CreateInput();
             for (int i = 0; i < input.Keyboards.Count; i++)
@@ -107,9 +110,23 @@ namespace RA2Render
             Debug.Assert(ra2mdmix != null);
             RA2Lib.FileSystem.LoadMIX("local.mix");
             RA2Lib.FileSystem.LoadMIX("cache.mix");
+            RA2Lib.FileSystem.LoadMIX("temperat.mix");
             RA2Lib.FileSystem.LoadMIX("localmd.mix");
             RA2Lib.FileSystem.LoadMIX("cachemd.mix");
             RA2Lib.FileSystem.LoadMIX("conqmd.mix");
+
+            // RA2Lib.FileSystem.LoadMIX("CONQMD.MIX");
+            // RA2Lib.FileSystem.LoadMIX("GENERMD.MIX");
+            // RA2Lib.FileSystem.LoadMIX("GENERIC.MIX");
+            // RA2Lib.FileSystem.LoadMIX("ISOGENMD.MIX");
+            // RA2Lib.FileSystem.LoadMIX("ISOGEN.MIX");
+            // RA2Lib.FileSystem.LoadMIX("CONQUER.MIX");
+            // RA2Lib.FileSystem.LoadMIX("CAMEOMD.MIX");
+            // RA2Lib.FileSystem.LoadMIX("CAMEO.MIX");
+            // RA2Lib.FileSystem.LoadMIX("MAPSMD03.MIX");
+            // RA2Lib.FileSystem.LoadMIX("MULTIMD.MIX");
+            // RA2Lib.FileSystem.LoadMIX("THEMEMD.MIX");
+            // RA2Lib.FileSystem.LoadMIX("MOVMD03.MIX");
 
             var rules = RA2Lib.FileSystem.LoadFile("RULESMD.INI");
             Debug.Assert(rules != null);
@@ -121,10 +138,10 @@ namespace RA2Render
 
             DemoPlaneMesh = new VoxelMesh(Gl, DemoPlane.Vertices, DemoPlane.Indices);
             // load vxl model
-            // string name = "bfrt";
+             string name = "bfrt";
             // string name = "bpln";
             // string name = "disktur";
-            string name = "shad";
+            // string name = "shad";
             // string name = "htnk";
             Model = new VoxelModel(Gl, new string[] { $"{name}.vxl" }, new string[] { $"{name}.hva" });
 
@@ -135,7 +152,7 @@ namespace RA2Render
             DemoSHP = new SHPTexture(Gl, "brute.shp");
 
             string mapfile = Path.Combine(ResourceDir, "2peaks.map");
-            Map = new TileMap(Gl, mapfile);
+            Map = new TileMap(Gl, mapfile, 1920, 1080);
             _mapMoveAmount = new(0, 0);
         }
 
@@ -169,6 +186,7 @@ namespace RA2Render
             // {
             //     DemoSHP.Draw();
             // }
+
             {
                 Map.Draw();
             }
@@ -184,7 +202,7 @@ namespace RA2Render
 
         private void OnResize(Vector2D<int> size)
         {
-            Gl.Viewport(0, 0, (uint) size.X, (uint) size.Y);
+            Gl.Viewport(0, 0, (uint)size.X, (uint)size.Y);
         }
 
         private void KeyDown(IKeyboard arg1, Key arg2, int arg3)

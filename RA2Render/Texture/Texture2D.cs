@@ -64,7 +64,7 @@ namespace RA2Render
 
             // Upload the vertices data to the VBO.
             fixed (float* buf = vertices)
-                _gl.BufferData(BufferTargetARB.ArrayBuffer, (nuint)(vertices.Length * sizeof(float)), buf, BufferUsageARB.StaticDraw);
+                _gl.BufferData(BufferTargetARB.ArrayBuffer, (nuint)(vertices.Length * sizeof(float)), buf, BufferUsageARB.DynamicDraw);
 
             // The quad indices data.
             uint[] indices =
@@ -79,7 +79,7 @@ namespace RA2Render
 
             // Upload the indices data to the EBO.
             fixed (uint* buf = indices)
-                _gl.BufferData(BufferTargetARB.ElementArrayBuffer, (nuint)(indices.Length * sizeof(uint)), buf, BufferUsageARB.StaticDraw);
+                _gl.BufferData(BufferTargetARB.ElementArrayBuffer, (nuint)(indices.Length * sizeof(uint)), buf, BufferUsageARB.DynamicDraw);
         }
 
         private void InitShader()
@@ -201,94 +201,46 @@ namespace RA2Render
             LoadTexture((uint)texture.Width, (uint)texture.Height, texture.GetPixelData());
         }
 
+        private static bool done = false;
         private unsafe void LoadTexture(uint Width, uint Height, byte[] Data)
         {
-            // Now we create our texture!
-            // First, we create the texture itself. Then, we must set an active texture unit. Each texture unit is a
-            // separate bindable texture that we can use in a shader. GPUs have a maximum number of texture units they
-            // can use, however the OpenGL spec states there MUST be at least 32 units available.
-            // Much like buffers, we then bind the texture to a Texture2D target.
             _texture = _gl.GenTexture();
+
             _gl.ActiveTexture(TextureUnit.Texture0);
             _gl.BindTexture(TextureTarget.Texture2D, _texture);
 
-            // Use StbImageSharp to load an image from our PNG file.
-            // This will load and decompress the result into a raw byte array that we can pass directly into OpenGL.
-            // ImageResult result = ImageResult.FromMemory(File.ReadAllBytes("silk.png"), ColorComponents.RedGreenBlueAlpha);
-
             fixed (byte* ptr = Data)
             {
-                // Upload our texture data to the GPU.
-                // Let's go over each parameter used here:
-                // 1. Tell OpenGL that we want to upload to the texture bound in the Texture2D target.
-                // 2. We are uploading the "base" texture level, therefore this value should be 0. You don't need to
-                //    worry about texture levels for now.
-                // 3. We tell OpenGL that we want the GPU to store this data as RGBA formatted data on the GPU itself.
-                // 4. The image's width.
-                // 5. The image's height.
-                // 6. This is the image's border. This valu MUST be 0. It is a leftover component from legacy OpenGL, and
-                //    it serves no purpose.
-                // 7. Our image data is formatted as RGBA data, therefore we must tell OpenGL we are uploading RGBA data.
-                // 8. StbImageSharp returns this data as a byte[] array, therefore we must tell OpenGL we are uploading
-                //    data in the unsigned byte format.
-                // 9. The actual pointer to our data!
                 _gl.TexImage2D(TextureTarget.Texture2D, 0, InternalFormat.Rgba, (uint)Width,
                     (uint)Height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, ptr);
             }
 
-            // Let's set some texture parameters!
-            // This tells the GPU how it should sample the texture.
-
-            // Set the texture wrap mode to repeat.
-            // The texture wrap mode defines what should happen when the texture coordinates go outside of the 0-1 range.
-            // In this case, we set it to repeat. The texture will just repeatedly tile over and over again.
-            // You'll notice we're using S and T wrapping here. This is OpenGL's version of the standard UV mapping you
-            // may be more used to, where S is on the X-axis, and T is on the Y-axis.
             _gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.Repeat);
             _gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Repeat);
 
-            // The min and mag filters define how the texture should be sampled as it resized.
-            // The min, or minification filter, is used when the texture is reduced in size.
-            // The mag, or magnification filter, is used when the texture is increased in size.
-            // We're using bilinear filtering here, as it produces a generally nice result.
-            // You can also use nearest (point) filtering, or anisotropic filtering, which is only available on the min
-            // filter.
-            // You may notice that the min filter defines a "mipmap" filter as well. We'll go over mipmaps below.
             _gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.LinearMipmapLinear);
             _gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
 
-            // Generate mipmaps for this texture.
-            // Note: We MUST do this or the texture will appear as black (this is an option you can change but this is
-            // out of scope for this tutorial).
-            // What is a mipmap?
-            // A mipmap is essentially a smaller version of the existing texture. When generating mipmaps, the texture
-            // size is continuously halved, generally stopping once it reaches a size of 1x1 pixels. (Note: there are
-            // exceptions to this, for example if the GPU reaches its maximum level of mipmaps, which is both a hardware
-            // limitation, and a user defined value. You don't need to worry about this for now, so just assume that
-            // the mips will be generated all the way down to 1x1 pixels).
-            // Mipmaps are used when the texture is reduced in size, to produce a much nicer result, and to reduce moire
-            // effect patterns.
             _gl.GenerateMipmap(TextureTarget.Texture2D);
 
-            // Unbind the texture as we no longer need to update it any further.
             _gl.BindTexture(TextureTarget.Texture2D, 0);
 
-            // Finally a bit of blending!
-            // If you disable blending, you'll notice a black border around the texture.
-            // The texture is partially transparent, however OpenGL doesn't know how to handle this by default.
-            // By enabling blending, and giving it a blend function, you can tell OpenGL how to handle transparency.
-            // In this case, it removes the black background and just leaves the texture on its own.
-            // The blend function is out of scope for this tutorial, so don't worry if you don't understand it too much.
-            // The program will function just fine without blending!
             _gl.Enable(EnableCap.Blend);
             _gl.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
         }
 
+        public unsafe void UpdateTexture(int x, int y, uint Width, uint Height, byte[] Data)
+        {
+            _gl.BindTexture(TextureTarget.Texture2D, _texture);
+            fixed(byte* ptr = Data)
+            {
+                _gl.TexSubImage2D(TextureTarget.Texture2D, 0, x, y, Width, Height, PixelFormat.Rgba, PixelType.UnsignedByte, ptr);
+            }
+            _gl.BindTexture(TextureTarget.Texture2D, 0);
+        }
+
         public void Bind()
         {
-            // Clear the window to the color we set earlier.
-            // _gl.Clear(ClearBufferMask.ColorBufferBit);
-
             // Bind our VAO, then the program.
             _gl.BindVertexArray(_vao);
             _gl.CheckError();

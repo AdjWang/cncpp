@@ -12,19 +12,19 @@ namespace RA2Render.Texture
 {
     public class TileMap: IDisposable
     {
-        public TileMap(GL gl, string map)
+        public TileMap(GL gl, string map, int w, int h)
         {
             _gl = gl;
 
             Map = new MapClass(map);
 
             (Rectangle previewSize, Color[] previewData) = Map.MapFile.GetPreviewTextureData();
-            _previewTexture = new(_gl, (uint)previewSize.Width, (uint)previewSize.Height, previewData);
+            // TODO: add back
+            // _previewTexture = new(_gl, (uint)previewSize.Width, (uint)previewSize.Height, previewData);
 
             Map.Initialize();
 
-            // TODO: 800, 600
-            Tactical = TacticalClass.Create(1920, 1080);
+            Tactical = TacticalClass.Create(w, h);
             Tactical.SetMap(Map);
 
             INI.Rules_Combined = new INI();
@@ -44,11 +44,18 @@ namespace RA2Render.Texture
 
             Map.SetupOverlays();
 
-            UpdateTexture();
+            Map.GetTexture(ref _mapTexture);
+            Debug.Assert(_mapTexture != null);
+            _texture = new(_gl, _mapTexture);
         }
 
         public void Draw()
         {
+            if (_mapMoved)
+            {
+                _mapMoved = false;
+                UpdateTexture();
+            }
             _texture.Bind();
             _texture.Draw();
             // _previewTexture.Bind();
@@ -64,23 +71,24 @@ namespace RA2Render.Texture
         {
             int amountLeftRight = amount.X;
             int amountUpDown = amount.Y;
-            bool mapMoved = false;
 
             if (amountLeftRight != 0)
             {
                 TacticalClass.NudgeStatus moveStatus = Tactical.NudgeX(amountLeftRight);
-                mapMoved |= moveStatus != TacticalClass.NudgeStatus.E_EDGE;
+                _mapMoved |= moveStatus != TacticalClass.NudgeStatus.E_EDGE;
             }
             if (amountUpDown != 0)
             {
                 TacticalClass.NudgeStatus moveStatus = Tactical.NudgeY(amountUpDown);
-                mapMoved |= moveStatus != TacticalClass.NudgeStatus.E_EDGE;
+                _mapMoved |= moveStatus != TacticalClass.NudgeStatus.E_EDGE;
             }
+        }
 
-            if (mapMoved)
-            {
-                UpdateTexture();
-            }
+        public void Resize(Vector2D<int> size)
+        {
+            // TODO: resize is essential to draw correctly in different window size
+            // texture would be messed up if not handling the window size
+            throw new NotImplementedException();
         }
 
         private readonly GL _gl;
@@ -88,6 +96,7 @@ namespace RA2Render.Texture
         private Texture2D _previewTexture;
         private MapClass Map;
         private TacticalClass Tactical;
+        private bool _mapMoved = false;
 
         private RA2Lib.Helpers.ZBufferedTexture? _mapTexture = null;
 
@@ -95,11 +104,7 @@ namespace RA2Render.Texture
         {
             Map.GetTexture(ref _mapTexture);
             Debug.Assert(_mapTexture != null);
-            if (_texture != null)
-            {
-                _texture.Dispose();
-            }
-            _texture = new(_gl, _mapTexture);
+            _texture.UpdateTexture(0, 0, (uint)_mapTexture.Width, (uint)_mapTexture.Height, _mapTexture.GetPixelData());
         }
     }
 }

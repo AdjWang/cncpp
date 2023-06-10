@@ -5,6 +5,7 @@ using System.Text;
 using System.IO;
 using RA2Lib.Libraries;
 using System.Diagnostics;
+using System.Reflection;
 
 namespace RA2Lib.FileFormats.Binary {
     public class MIX : BinaryFileFormat {
