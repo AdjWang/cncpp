@@ -110,6 +110,7 @@ namespace RA2Render
             Debug.Assert(ra2mdmix != null);
             RA2Lib.FileSystem.LoadMIX("local.mix");
             RA2Lib.FileSystem.LoadMIX("cache.mix");
+            RA2Lib.FileSystem.LoadMIX("conquer.mix");
             RA2Lib.FileSystem.LoadMIX("temperat.mix");
             RA2Lib.FileSystem.LoadMIX("localmd.mix");
             RA2Lib.FileSystem.LoadMIX("cachemd.mix");
@@ -151,9 +152,9 @@ namespace RA2Render
 
             DemoSHP = new SHPTexture(Gl, "brute.shp");
 
-            string mapfile = Path.Combine(ResourceDir, "2peaks.map");
-            Map = new TileMap(Gl, mapfile, 1920, 1080);
-            _mapMoveAmount = new(0, 0);
+            // string mapfile = Path.Combine(ResourceDir, "2peaks.map");
+            // Map = new TileMap(Gl, mapfile, 1920, 1080);
+            // _mapMoveAmount = new(0, 0);
         }
 
         private unsafe void OnRender(double obj) //Method needs to be unsafe due to draw elements.
@@ -183,18 +184,18 @@ namespace RA2Render
             //     DemoPlaneMesh.Draw();
             // }
 
-            // {
-            //     DemoSHP.Draw();
-            // }
-
             {
-                Map.Draw();
+                DemoSHP.Draw();
             }
+
+            // {
+            //     Map.Draw();
+            // }
         }
 
         private void OnUpdate(double obj)
         {
-            Map.Move(_mapMoveAmount);
+            // Map.Move(_mapMoveAmount);
         }
 
         private void OnClose()

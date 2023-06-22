@@ -16,6 +16,7 @@ static class Program
 
         Log.Logger = new LoggerConfiguration()
             .WriteTo.Debug()
+            .MinimumLevel.Debug()
             .CreateLogger();
         Log.Information("OpenGLRender initializing...");
 

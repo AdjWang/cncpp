@@ -6,6 +6,19 @@ namespace RA2Render
 {
     public class Texture2D : IDisposable
     {
+        public Texture2D(GL gl, uint Width, uint Height, byte[] Data)
+        {
+            _gl = gl;
+            InitBuffer();
+            _gl.CheckError();
+            InitShader();
+            _gl.CheckError();
+            InitAttributes();
+            _gl.CheckError();
+            LoadTexture(Width, Height, Data);
+            _gl.CheckError();
+        }
+
         public Texture2D(GL gl, uint Width, uint Height, RA2Lib.XnaUtils.Color[] pixels)
         {
             _gl = gl;

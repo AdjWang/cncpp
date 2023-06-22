@@ -57,6 +57,54 @@ namespace RA2Lib.FileFormats.Binary {
                 return true;
             }
 
+            public class FastByteReader
+            {
+                readonly byte[] src;
+                int offset;
+
+                public FastByteReader(byte[] src, int offset = 0)
+                {
+                    this.src = src;
+                    this.offset = offset;
+                }
+
+                public bool Done() { return offset >= src.Length; }
+                public byte ReadByte() { return src[offset++]; }
+                public int ReadWord()
+                {
+                    var x = ReadByte();
+                    return x | (ReadByte() << 8);
+                }
+
+                public void CopyTo(byte[] dest, int offset, int count)
+                {
+                    Array.Copy(src, this.offset, dest, offset, count);
+                    this.offset += count;
+                }
+
+                public int Remaining() { return src.Length - offset; }
+            }
+            public static class RLEZerosCompression
+            {
+                public static void DecodeInto(byte[] src, byte[] dest, int destIndex)
+                {
+                    var r = new FastByteReader(src);
+
+                    while (!r.Done())
+                    {
+                        var cmd = r.ReadByte();
+                        if (cmd == 0)
+                        {
+                            var count = r.ReadByte();
+                            while (count-- > 0)
+                                dest[destIndex++] = 0;
+                        }
+                        else
+                            dest[destIndex++] = cmd;
+                    }
+                }
+            }
+
             internal bool ProcessBytes(ArraySegment<byte> input) {
                 if ((Compression & 2) == 0) {
                     ProcessedBytes = input.Array.Skip(input.Offset).Take((int)Length).ToArray();
@@ -138,8 +186,18 @@ namespace RA2Lib.FileFormats.Binary {
             return null;
         }
 
+        public Stream FileContent
+        {
+            get
+            {
+                return _ccfile.Contents;
+            }
+        }
+        private CCFileClass _ccfile;
+
         public SHP(CCFileClass ccFile = null)
             : base(ccFile) {
+            _ccfile = ccFile;
         }
 
         public int FrameCount {
@@ -201,7 +259,61 @@ namespace RA2Lib.FileFormats.Binary {
             Palette = NewPalette;
         }
 
-        // TODO: drop the inefficient for loop blit operation
+        public int GetFullTexture(ref Helpers.ZBufferedTexture resultTexture, bool yflip = false)
+        {
+            if (Palette == null) {
+                throw new InvalidOperationException("Cannot create texture without a palette.");
+            }
+            int w = Header.Width;
+            int h = Header.Height;
+
+            if (resultTexture == null) {
+                resultTexture = new Helpers.ZBufferedTexture(w, h);
+            } else {
+                resultTexture.Clear();
+            }
+
+            int frameCount = 0;
+            for (int iframe = 0; iframe < Header.FrameCount; iframe++)
+            {
+                FrameHeader frame = FrameHeaders[iframe];
+                int fw = frame.Width;
+                int fh = frame.Height;
+                int fhw = fw * fh;
+                Debug.Assert(fhw == frame.ProcessedBytes.Length, $"inconsistent data length: {fhw}, {frame.ProcessedBytes.Length}");
+                if (fhw == 0)
+                {
+                    continue;
+                }
+                frameCount++;
+
+                for (var y = 0; y < fh; ++y)
+                {
+                    for (var x = 0; x < fw; ++x)
+                    {
+                        var ix = frame.ProcessedBytes[y * fw + x];
+                        Color c;
+                        if (ix == 0)
+                        {
+                            c = PAL.TranslucentColor;
+                        }
+                        else
+                        {
+                            c = Palette.Colors[ix];
+                        }
+                        int texX = frame.X + x;
+                        int texY = frame.Y + y;
+                        if (yflip)
+                        {
+                            texY = frame.Y + fh - 1 - y;
+                        }
+                        resultTexture.PutPixel(c, texX, texY, 0);
+                    }
+                }
+            }
+            return frameCount;
+        }
+
         public void GetTexture(uint FrameIndex, ref Helpers.ZBufferedTexture resultTexture, bool yflip=false) {
             if (Palette == null) {
                 throw new InvalidOperationException("Cannot create texture without a palette.");
