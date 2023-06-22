@@ -1,16 +1,17 @@
 ﻿using System.Diagnostics;
 using Silk.NET.OpenGL;
+using Silk.NET.Maths;
 
 using RA2Lib;
 using RA2Lib.AbstractHierarchy;
 using RA2Lib.FileFormats.Text;
+using RA2Render.Common;
 using Rectangle = RA2Lib.XnaUtils.Rectangle;
 using Color = RA2Lib.XnaUtils.Color;
-using Silk.NET.Maths;
 
 namespace RA2Render.Texture
 {
-    public class TileMap: IDisposable
+    public class TileMap: IDisposable, IRenderable
     {
         public TileMap(GL gl, string map, int w, int h)
         {
@@ -49,17 +50,15 @@ namespace RA2Render.Texture
             _texture = new(_gl, _mapTexture);
         }
 
-        public void Draw()
+        public void Render()
         {
             if (_mapMoved)
             {
                 _mapMoved = false;
                 UpdateTexture();
             }
-            _texture.Bind();
-            _texture.Draw();
-            // _previewTexture.Bind();
-            // _previewTexture.Draw();
+            _texture.Render();
+            // _previewTexture.Render();
         }
 
         public void Dispose()

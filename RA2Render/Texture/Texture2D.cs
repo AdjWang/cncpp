@@ -1,10 +1,11 @@
 ﻿// https://github.com/dotnet/Silk.NET/blob/main/examples/CSharp/OpenGL%20Tutorials/Tutorial%201.3%20-%20Textures/Program.cs
 using System.Diagnostics;
+using RA2Render.Common;
 using Silk.NET.OpenGL;
 
 namespace RA2Render
 {
-    public class Texture2D : IDisposable
+    public class Texture2D : IDisposable, IRenderable
     {
         public Texture2D(GL gl, uint Width, uint Height, byte[] Data)
         {
@@ -252,7 +253,7 @@ namespace RA2Render
             _gl.BindTexture(TextureTarget.Texture2D, 0);
         }
 
-        public void Bind()
+        private void Bind()
         {
             // Bind our VAO, then the program.
             _gl.BindVertexArray(_vao);
@@ -268,8 +269,9 @@ namespace RA2Render
             _gl.CheckError();
         }
 
-        public unsafe void Draw()
+        public unsafe void Render()
         {
+            Bind();
             _gl.DrawElements(PrimitiveType.Triangles, /*count*/6, DrawElementsType.UnsignedInt, null);
         }
 

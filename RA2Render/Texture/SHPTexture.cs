@@ -3,11 +3,12 @@ using System.IO;
 using Serilog;
 using Silk.NET.OpenGL;
 
+using RA2Render.Common;
 using Color = RA2Lib.XnaUtils.Color;
 
 namespace RA2Render
 {
-    public class SHPTexture : IDisposable
+    public class SHPTexture : IDisposable, IRenderable
     {
         public SHPTexture(GL gl, string shp)
         {
@@ -85,13 +86,10 @@ namespace RA2Render
 
         private int frame = 0;
 
-        public void Draw()
+        public void Render()
         {
             frame = (frame + 1) % _textures.Count();
-            _currentTexture = _textures[frame];
-
-            _currentTexture.Bind();
-            _currentTexture.Draw();
+            _textures[frame].Render();
         }
 
         public void Dispose()

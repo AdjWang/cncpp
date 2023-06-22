@@ -152,9 +152,9 @@ namespace RA2Render
 
             DemoSHP = new SHPTexture(Gl, "brute.shp");
 
-            // string mapfile = Path.Combine(ResourceDir, "2peaks.map");
-            // Map = new TileMap(Gl, mapfile, 1920, 1080);
-            // _mapMoveAmount = new(0, 0);
+            string mapfile = Path.Combine(ResourceDir, "2peaks.map");
+            Map = new TileMap(Gl, mapfile, 1920, 1080);
+            _mapMoveAmount = new(0, 0);
         }
 
         private unsafe void OnRender(double obj) //Method needs to be unsafe due to draw elements.
@@ -175,21 +175,19 @@ namespace RA2Render
 
             foreach (var mesh in Model.Meshes)
             {
-                mesh.Bind();
-                mesh.Draw();
+                mesh.Render();
             }
 
             // {
-            //     DemoPlaneMesh.Bind();
-            //     DemoPlaneMesh.Draw();
+            //     DemoPlaneMesh.Render();
             // }
 
-            {
-                DemoSHP.Draw();
-            }
+            // {
+            //     DemoSHP.Render();
+            // }
 
             // {
-            //     Map.Draw();
+            //     Map.Render();
             // }
         }
 

@@ -5,10 +5,11 @@ using System;
 using System.Diagnostics;
 using System.Collections.Generic;
 using Silk.NET.OpenGL;
+using RA2Render.Common;
 
 namespace RA2Render.Model
 {
-    public class VoxelMesh : IDisposable
+    public class VoxelMesh : IDisposable, IRenderable
     {
         public VertexArrayObject<float, uint> VAO { get; set; }
         public BufferObject<float> VBO { get; set; }
@@ -37,13 +38,14 @@ namespace RA2Render.Model
         private float[] Vertices { get; set; }
         private uint[] Indices { get; set; }
 
-        public void Bind()
+        private void Bind()
         {
             VAO.Bind();
         }
 
-        public unsafe void Draw()
+        public unsafe void Render()
         {
+            Bind();
             GL.DrawElements(PrimitiveType.Triangles, (uint)Indices.Length, DrawElementsType.UnsignedInt, null);
         }
 
