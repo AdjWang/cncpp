@@ -8,6 +8,7 @@ using Silk.NET.Maths;
 
 using RA2Render.Model;
 using RA2Render.Texture;
+using RA2Render.Common;
 
 namespace RA2Render
 {
@@ -47,6 +48,7 @@ namespace RA2Render
 
         private Shader Shader = null!;
         private Camera Camera = null!;
+        private FrameBufferRenderer _renderWrapper;
         private VoxelModel Model = null!;
         private VoxelMesh DemoPlaneMesh = null!;
         private SHPTexture DemoSHP = null!;
@@ -145,16 +147,17 @@ namespace RA2Render
             // string name = "shad";
             // string name = "htnk";
             Model = new VoxelModel(Gl, new string[] { $"{name}.vxl" }, new string[] { $"{name}.hva" });
+            _renderWrapper = new(Gl, Model);
 
             string vertShaderPath = Path.Combine(ProjectDir, "RA2Render\\Model\\common_shader_vert.txt");
             string fragShaderPath = Path.Combine(ProjectDir, "RA2Render\\Model\\common_shader_frag.txt");
             Shader = new Shader(Gl, vertShaderPath, fragShaderPath, inline: false);
 
-            DemoSHP = new SHPTexture(Gl, "brute.shp");
+            // DemoSHP = new SHPTexture(Gl, "brute.shp");
 
-            string mapfile = Path.Combine(ResourceDir, "2peaks.map");
-            Map = new TileMap(Gl, mapfile, 1920, 1080);
-            _mapMoveAmount = new(0, 0);
+            // string mapfile = Path.Combine(ResourceDir, "2peaks.map");
+            // Map = new TileMap(Gl, mapfile, 1920, 1080);
+            // _mapMoveAmount = new(0, 0);
         }
 
         private unsafe void OnRender(double obj) //Method needs to be unsafe due to draw elements.
@@ -173,9 +176,9 @@ namespace RA2Render
                             Matrix4x4.CreateRotationX(-15.0f);
             Shader.SetUniform("transform", transform);
 
-            foreach (var mesh in Model.Meshes)
             {
-                mesh.Render();
+                // Model.Render();
+                _renderWrapper.Render();
             }
 
             // {

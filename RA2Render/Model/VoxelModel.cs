@@ -10,9 +10,11 @@ using System.Numerics;
 using Serilog;
 using Silk.NET.OpenGL;
 
+using RA2Render.Common;
+
 namespace RA2Render.Model
 {
-    public class VoxelModel : IDisposable
+    public class VoxelModel : IDisposable, IRenderable
     {
         public VoxelModel(GL gl, string[] vxls, string[] hvas)
         {
@@ -77,6 +79,14 @@ namespace RA2Render.Model
         private uint[] BuildIndices(List<uint> indices)
         {
             return indices.ToArray();
+        }
+
+        public void Render()
+        {
+            foreach (var mesh in Meshes)
+            {
+                mesh.Render();
+            }
         }
 
         public void Dispose()
