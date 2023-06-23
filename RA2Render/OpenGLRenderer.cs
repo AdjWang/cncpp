@@ -163,7 +163,8 @@ namespace RA2Render
         private unsafe void OnRender(double obj) //Method needs to be unsafe due to draw elements.
         {
             Debug.Assert(Gl != null);
-            Gl.Enable(EnableCap.DepthTest);
+            // Gl.Enable(EnableCap.DepthTest);
+            Gl.Disable(EnableCap.DepthTest);
             Gl.Clear((uint)ClearBufferMask.ColorBufferBit | (uint)ClearBufferMask.DepthBufferBit);
             //Clear the color channel.
             // Gl.Clear((uint)ClearBufferMask.ColorBufferBit);

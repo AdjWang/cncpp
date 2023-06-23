@@ -28,18 +28,16 @@ namespace RA2Render.Common
             _vao = _gl.GenVertexArray();
             _gl.BindVertexArray(_vao);
 
-            // The quad vertices data.
-            // You may have noticed an addition - texture coordinates!
-            // Texture coordinates are a value between 0-1 (see more later about this) which tell the GPU which part
-            // of the texture to use for each vertex.
-            float scale = 1.0f;
             float[] vertices =
             {
-              // aPosition--------   aTexCoords
-                 scale,  scale, 0.0f,  1.0f, 1.0f,
-                 scale, -scale, 0.0f,  1.0f, 0.0f,
-                -scale, -scale, 0.0f,  0.0f, 0.0f,
-                -scale,  scale, 0.0f,  0.0f, 1.0f
+                // positions   // texCoords
+                -1.0f,  1.0f,  0.0f, 1.0f,
+                -1.0f, -1.0f,  0.0f, 0.0f,
+                 1.0f, -1.0f,  1.0f, 0.0f,
+
+                -1.0f,  1.0f,  0.0f, 1.0f,
+                 1.0f, -1.0f,  1.0f, 0.0f,
+                 1.0f,  1.0f,  1.0f, 1.0f
             };
 
             // Create the VBO.
@@ -48,22 +46,12 @@ namespace RA2Render.Common
 
             // Upload the vertices data to the VBO.
             fixed (float* buf = vertices)
-                _gl.BufferData(BufferTargetARB.ArrayBuffer, (nuint)(vertices.Length * sizeof(float)), buf, BufferUsageARB.DynamicDraw);
+                _gl.BufferData(BufferTargetARB.ArrayBuffer, (nuint)(vertices.Length * sizeof(float)), buf, BufferUsageARB.StaticDraw);
 
-            // The quad indices data.
-            uint[] indices =
-            {
-                0u, 1u, 3u,
-                1u, 2u, 3u
-            };
-
-            // Create the EBO.
-            _ebo = _gl.GenBuffer();
-            _gl.BindBuffer(BufferTargetARB.ElementArrayBuffer, _ebo);
-
-            // Upload the indices data to the EBO.
-            fixed (uint* buf = indices)
-                _gl.BufferData(BufferTargetARB.ElementArrayBuffer, (nuint)(indices.Length * sizeof(uint)), buf, BufferUsageARB.DynamicDraw);
+            _gl.EnableVertexAttribArray(0);
+            _gl.VertexAttribPointer(0, 2, VertexAttribPointerType.Float, false, 4 * sizeof(float), (void*)0);
+            _gl.EnableVertexAttribArray(1);
+            _gl.VertexAttribPointer(1, 2, VertexAttribPointerType.Float, false, 4 * sizeof(float), (void*)(2 * sizeof(float)));
         }
 
         private void InitShader()
@@ -71,44 +59,35 @@ namespace RA2Render.Common
             // The vertex shader code.
             const string vertexCode = @"
             #version 330 core
-            
-            layout (location = 0) in vec3 aPosition;
-
-            // On top of our aPosition attribute, we now create an aTexCoords attribute for our texture coordinates.
+            layout (location = 0) in vec3 aPos;
             layout (location = 1) in vec2 aTexCoords;
-
-            // Likewise, we also assign an out attribute to go into the fragment shader.
-            out vec2 frag_texCoords;
+            
+            out vec2 TexCoords;
+            
+            // uniform mat4 model;
+            // uniform mat4 view;
+            // uniform mat4 projection;
             
             void main()
             {
-                gl_Position = vec4(aPosition, 1.0);
-
-                // This basic vertex shader does no additional processing of texture coordinates, so we can pass them
-                // straight to the fragment shader.
-                frag_texCoords = aTexCoords;
-            }";
+                TexCoords = aTexCoords;    
+                // gl_Position = projection * view * model * vec4(aPos, 1.0);
+                gl_Position = vec4(aPos, 1.0);
+            }
+            ";
 
             // The fragment shader code.
             const string fragmentCode = @"
             #version 330 core
-
-            // This in attribute corresponds to the out attribute we defined in the vertex shader.
-            in vec2 frag_texCoords;
-            
-            out vec4 out_color;
-
-            // Now we define a uniform value!
-            // A uniform in OpenGL is a value that can be changed outside of the shader by modifying its value.
-            // A sampler2D contains both a texture and information on how to sample it.
-            // Sampling a texture is basically calculating the color of a pixel on a texture at any given point.
-            uniform sampler2D uTexture;
+            out vec4 FragColor;
+            in vec2 TexCoords;
+            uniform sampler2D texture1;
             
             void main()
-            {
-                // We use GLSL's texture function to sample from the texture at the given input texture coordinates.
-                out_color = texture(uTexture, frag_texCoords);
-            }";
+            {    
+                FragColor = texture(texture1, TexCoords);
+            }
+            ";
 
             // Create our vertex shader, and give it our vertex shader source code.
             uint vertexShader = _gl.CreateShader(ShaderType.VertexShader);
@@ -221,13 +200,13 @@ namespace RA2Render.Common
             _target.Render();
             Unbind();
 
-            _gl.BindVertexArray(_vao);
-            _gl.CheckError();
             _gl.UseProgram(_program);
+            _gl.CheckError();
+            _gl.BindVertexArray(_vao);
             _gl.CheckError();
             _gl.BindTexture(TextureTarget.Texture2D, _texColorBuffer);
             _gl.CheckError();
-            _gl.DrawElements(PrimitiveType.Triangles, /*count*/6, DrawElementsType.UnsignedInt, null);
+            _gl.DrawArrays(PrimitiveType.Triangles, 0, /*count*/6);
             _gl.CheckError();
         }
 
@@ -236,8 +215,6 @@ namespace RA2Render.Common
             _gl.DeleteVertexArray(_vao);
             _gl.CheckError();
             _gl.DeleteVertexArray(_vbo);
-            _gl.CheckError();
-            _gl.DeleteVertexArray(_ebo);
             _gl.CheckError();
             _gl.DeleteProgram(_program);
             _gl.CheckError();
@@ -253,7 +230,6 @@ namespace RA2Render.Common
         private IRenderable _target;
         private uint _vao;
         private uint _vbo;
-        private uint _ebo;
         private uint _program;
         private uint _fbo;
         private uint _texColorBuffer;
