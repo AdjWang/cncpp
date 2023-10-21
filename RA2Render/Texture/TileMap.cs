@@ -92,7 +92,7 @@ namespace RA2Render.Texture
 
         private readonly GL _gl;
         private Texture2D _texture;
-        private Texture2D _previewTexture;
+        // private Texture2D _previewTexture;
         private MapClass Map;
         private TacticalClass Tactical;
         private bool _mapMoved = false;

@@ -96,7 +96,7 @@ namespace OpenRA.Mods.Common.SpriteLoaders
 
 		public static IEnumerable<string> ReadAllLines(this Stream s)
 		{
-			string line;
+			string? line;
 			using (var sr = new StreamReader(s))
 				while ((line = sr.ReadLine()) != null)
 					yield return line;
@@ -210,7 +210,7 @@ namespace OpenRA.Mods.Common.SpriteLoaders
 			public Size Size { get; }
 			public Size FrameSize { get; }
 			public Vector2D<float> Offset { get; }
-			public byte[] Data { get; set; }
+			public byte[] Data { get; set; } = Array.Empty<byte>();
 			public bool DisableExportPadding => false;
 
 			public readonly uint FileOffset;
@@ -350,7 +350,7 @@ namespace OpenRA.Mods.Common.SpriteLoaders
 		{
 			if (!IsShpTS(s))
 			{
-				frames = null;
+				frames = Array.Empty<ISpriteFrame>();
 				return false;
 			}
 

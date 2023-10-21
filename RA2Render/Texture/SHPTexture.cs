@@ -82,7 +82,7 @@ namespace RA2Render
 
         private readonly GL _gl;
         private List<Texture2D> _textures = new();
-        private Texture2D _currentTexture;
+        // private Texture2D _currentTexture;
 
         private int frame = 0;
 

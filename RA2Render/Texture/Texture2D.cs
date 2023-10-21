@@ -215,7 +215,7 @@ namespace RA2Render
             LoadTexture((uint)texture.Width, (uint)texture.Height, texture.GetPixelData());
         }
 
-        private static bool done = false;
+        // private static bool done = false;
         private unsafe void LoadTexture(uint Width, uint Height, byte[] Data)
         {
             _texture = _gl.GenTexture();

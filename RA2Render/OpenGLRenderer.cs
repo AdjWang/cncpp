@@ -48,7 +48,7 @@ namespace RA2Render
 
         private Shader Shader = null!;
         private Camera Camera = null!;
-        private FrameBufferRenderer _renderWrapper;
+        private FrameBufferRenderer? _renderWrapper;
         private VoxelModel Model = null!;
         private VoxelMesh DemoPlaneMesh = null!;
         private SHPTexture DemoSHP = null!;
@@ -84,9 +84,9 @@ namespace RA2Render
             // string GameDir = "D:\\Games\\RA2\\RA2";
             // string ProjectDir = "D:\\temp\\RA2Render\\cncpp";
             // string ResourceDir = "D:\\temp\\RA2Render\\RA2Resources";
-            string GameDir = "D:\\Practice\\RA2";
-            string ProjectDir = "D:\\Practice\\cncpp";
-            string ResourceDir = "D:\\Practice\\RA2Resources";
+            string GameDir = "D:\\Games\\RA2\\RA2";
+            string ProjectDir = "D:\\VSProjects\\cncpp";
+            // string ResourceDir = "D:\\Practice\\RA2Resources";
 
             IInputContext input = window.CreateInput();
             for (int i = 0; i < input.Keyboards.Count; i++)
@@ -179,7 +179,7 @@ namespace RA2Render
 
             {
                 // Model.Render();
-                _renderWrapper.Render();
+                _renderWrapper?.Render();
             }
 
             // {
