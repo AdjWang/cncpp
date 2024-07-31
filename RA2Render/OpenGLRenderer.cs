@@ -5,6 +5,8 @@ using Silk.NET.Input;
 using Silk.NET.OpenGL;
 using Silk.NET.Windowing;
 using Silk.NET.Maths;
+using System.Windows.Media.Imaging;
+using System.Drawing.Imaging;
 
 using RA2Render.Model;
 using RA2Render.Texture;
@@ -14,13 +16,15 @@ namespace RA2Render
 {
     class Renderer : IDisposable
     {
-        public Renderer()
+        public Renderer(bool dumpMode)
         {
             var options = WindowOptions.Default;
             options.API = new(ContextAPI.OpenGL, new(3, 3));
             options.PreferredDepthBufferBits = 8;
             options.Size = new Vector2D<int>(Width, Height);
             options.Title = "RA2OpenGLRenderer";
+            options.IsVisible = !dumpMode;
+            _dumpMode = dumpMode;
 
             window = Window.Create(options);
             Debug.Assert(window != null);
@@ -45,6 +49,7 @@ namespace RA2Render
 
         private IWindow window;
         private GL Gl = null!;
+        private bool _dumpMode;
 
         private Shader Shader = null!;
         private Camera Camera = null!;
@@ -84,9 +89,11 @@ namespace RA2Render
             // string GameDir = "D:\\Games\\RA2\\RA2";
             // string ProjectDir = "D:\\temp\\RA2Render\\cncpp";
             // string ResourceDir = "D:\\temp\\RA2Render\\RA2Resources";
-            string GameDir = "D:\\Games\\RA2\\RA2";
-            string ProjectDir = "D:\\VSProjects\\cncpp";
+            //string GameDir = "D:\\Games\\RA2\\RA2";
+            //string ProjectDir = "D:\\VSProjects\\cncpp";
             // string ResourceDir = "D:\\Practice\\RA2Resources";
+            string GameDir = "E:\\RA2\\RA2Original";
+            string ProjectDir = "E:\\Projects\\cncpp";
 
             IInputContext input = window.CreateInput();
             for (int i = 0; i < input.Keyboards.Count; i++)
@@ -117,19 +124,7 @@ namespace RA2Render
             RA2Lib.FileSystem.LoadMIX("localmd.mix");
             RA2Lib.FileSystem.LoadMIX("cachemd.mix");
             RA2Lib.FileSystem.LoadMIX("conqmd.mix");
-
-            // RA2Lib.FileSystem.LoadMIX("CONQMD.MIX");
-            // RA2Lib.FileSystem.LoadMIX("GENERMD.MIX");
-            // RA2Lib.FileSystem.LoadMIX("GENERIC.MIX");
-            // RA2Lib.FileSystem.LoadMIX("ISOGENMD.MIX");
-            // RA2Lib.FileSystem.LoadMIX("ISOGEN.MIX");
-            // RA2Lib.FileSystem.LoadMIX("CONQUER.MIX");
-            // RA2Lib.FileSystem.LoadMIX("CAMEOMD.MIX");
-            // RA2Lib.FileSystem.LoadMIX("CAMEO.MIX");
-            // RA2Lib.FileSystem.LoadMIX("MAPSMD03.MIX");
-            // RA2Lib.FileSystem.LoadMIX("MULTIMD.MIX");
-            // RA2Lib.FileSystem.LoadMIX("THEMEMD.MIX");
-            // RA2Lib.FileSystem.LoadMIX("MOVMD03.MIX");
+            RA2Lib.FileSystem.LoadMIX("loadmd.mix");
 
             var rules = RA2Lib.FileSystem.LoadFile("RULESMD.INI");
             Debug.Assert(rules != null);
@@ -141,7 +136,7 @@ namespace RA2Render
 
             DemoPlaneMesh = new VoxelMesh(Gl, DemoPlane.Vertices, DemoPlane.Indices);
             // load vxl model
-             string name = "bfrt";
+            string name = "bfrt";
             // string name = "bpln";
             // string name = "disktur";
             // string name = "shad";
@@ -153,7 +148,8 @@ namespace RA2Render
             string fragShaderPath = Path.Combine(ProjectDir, "RA2Render\\Model\\common_shader_frag.txt");
             Shader = new Shader(Gl, vertShaderPath, fragShaderPath, inline: false);
 
-            // DemoSHP = new SHPTexture(Gl, "brute.shp");
+            DemoSHP = new SHPTexture(Gl, "brute.shp", "unitubn.pal");
+            //DemoSHP = new SHPTexture(Gl, "ls800ustates.shp", "mplsu.pal");
 
             // string mapfile = Path.Combine(ResourceDir, "2peaks.map");
             // Map = new TileMap(Gl, mapfile, 1920, 1080);
@@ -169,30 +165,36 @@ namespace RA2Render
             //Clear the color channel.
             // Gl.Clear((uint)ClearBufferMask.ColorBufferBit);
 
-            Shader.Use();
-            SetShaderUniforms();
-            var difference = (float)(window.Time);
-            var transform = Matrix4x4.CreateRotationZ(difference) *
-                            Matrix4x4.CreateRotationY(0.0f) *
-                            Matrix4x4.CreateRotationX(-15.0f);
-            Shader.SetUniform("transform", transform);
+            //Shader.Use();
+            //SetShaderUniforms();
+            //var difference = (float)(window.Time);
+            //var transform = Matrix4x4.CreateRotationZ(difference) *
+            //                Matrix4x4.CreateRotationY(0.0f) *
+            //                Matrix4x4.CreateRotationX(-15.0f);
+            //Shader.SetUniform("transform", transform);
 
-            {
-                // Model.Render();
-                _renderWrapper?.Render();
-            }
+            //{
+            //    // Model.Render();
+            //    _renderWrapper?.Render();
+            //}
 
             // {
             //     DemoPlaneMesh.Render();
             // }
 
-            // {
-            //     DemoSHP.Render();
-            // }
+            {
+                DemoSHP.Render();
+            }
 
             // {
             //     Map.Render();
             // }
+
+            if (_dumpMode)
+            {
+                //GrabScreenshot(@"C:\Users\c5\Desktop\RA2Res\temp.bmp", 800, 600);
+                window.Close();
+            }
         }
 
         private void OnUpdate(double obj)
@@ -201,11 +203,51 @@ namespace RA2Render
         }
 
         private void OnClose()
-        { }
+        {
+        }
 
         private void OnResize(Vector2D<int> size)
         {
             Gl.Viewport(0, 0, (uint)size.X, (uint)size.Y);
+        }
+
+        public unsafe void GrabScreenshot(string outputFile, int width, int height)
+        {
+            int stride = width;
+            byte[] pixels = new byte[height * stride];
+            fixed (byte* ptr = pixels)
+            {
+                Gl.ReadPixels(0, 0, (uint)width, (uint)height, Silk.NET.OpenGL.PixelFormat.Bgr, PixelType.Byte, ptr);
+            }
+
+            //// Define the image palette
+            //BitmapPalette myPalette = BitmapPalettes.Halftone256;
+
+            //// Creates a new empty image with the pre-defined palette
+
+            //BitmapSource image = BitmapSource.Create(
+            //    width,
+            //    height,
+            //    96,
+            //    96,
+            //    System.Windows.Media.PixelFormats.Bgr24,
+            //    myPalette,
+            //    pixels,
+            //    stride);
+
+            //FileStream stream = new(outputFile, FileMode.Create);
+            //PngBitmapEncoder encoder = new();
+            //encoder.Interlace = PngInterlaceOption.On;
+            //encoder.Frames.Add(BitmapFrame.Create(image));
+            //encoder.Save(stream);
+
+            var snapShotBmp = new Bitmap(width, height);
+            BitmapData bmpData = snapShotBmp.LockBits(new System.Drawing.Rectangle(0, 0, width, height), ImageLockMode.WriteOnly,
+                                                      System.Drawing.Imaging.PixelFormat.Format24bppRgb);
+            Gl.ReadPixels(0, 0, (uint)width, (uint)height, (GLEnum)Silk.NET.OpenGL.PixelFormat.Bgr, (GLEnum)PixelType.UnsignedByte,
+                          bmpData.Scan0.ToPointer());
+            snapShotBmp.UnlockBits(bmpData);
+            snapShotBmp.Save(outputFile);
         }
 
         private void KeyDown(IKeyboard arg1, Key arg2, int arg3)
